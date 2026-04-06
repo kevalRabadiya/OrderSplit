@@ -9,6 +9,7 @@ html {
 }
 
 :root {
+  color-scheme: light;
   --font-sans: "Outfit", system-ui, "Segoe UI", Roboto, sans-serif;
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
   --text: #57534e;
@@ -41,6 +42,7 @@ html {
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --text: #a8a29e;
   --text-h: #fafaf9;
   --bg: #0c0a09;

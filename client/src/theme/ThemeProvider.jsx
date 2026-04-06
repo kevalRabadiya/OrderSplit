@@ -13,45 +13,28 @@ function getSystemDark() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-function resolvePreference(pref, systemDark) {
-  if (pref === "dark") return "dark";
-  if (pref === "light") return "light";
-  return systemDark ? "dark" : "light";
+/** @returns {"light" | "dark"} */
+function readInitialTheme() {
+  if (typeof window === "undefined") return "light";
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === "light" || stored === "dark") return stored;
+    if (stored === "system") return getSystemDark() ? "dark" : "light";
+  } catch {
+    /* ignore */
+  }
+  return getSystemDark() ? "dark" : "light";
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => {
-    if (typeof window === "undefined") return "system";
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "light" || stored === "dark" || stored === "system") {
-        return stored;
-      }
-    } catch {
-      /* ignore */
-    }
-    return "system";
-  });
-
-  const [systemDark, setSystemDark] = useState(getSystemDark);
-
-  const resolvedTheme = useMemo(
-    () => resolvePreference(theme, systemDark),
-    [theme, systemDark]
-  );
+  const [theme, setThemeState] = useState(readInitialTheme);
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = () => setSystemDark(mq.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", resolvedTheme);
-  }, [resolvedTheme]);
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   const setTheme = useCallback((next) => {
+    if (next !== "light" && next !== "dark") return;
     setThemeState(next);
     try {
       localStorage.setItem(STORAGE_KEY, next);
@@ -61,8 +44,8 @@ export function ThemeProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ theme, setTheme, resolvedTheme }),
-    [theme, setTheme, resolvedTheme]
+    () => ({ theme, setTheme, resolvedTheme: theme }),
+    [theme, setTheme]
   );
 
   return (

@@ -1,4 +1,4 @@
-# Tiffin / Thali ordering app
+# Money split for Tifin/Thali ordering
 
 Internal tool for entering daily thali orders: **React** (Vite) frontend, **Express** API (**TypeScript**, compiled to `server/dist/`), **MongoDB** database. Menu prices are fixed and calculated on the server.
 

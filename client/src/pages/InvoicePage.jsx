@@ -66,28 +66,35 @@ export default function InvoicePage() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null);
-    getOrdersHistory({
-      from,
-      to,
-      userId: filterUserId || undefined,
-    })
-      .then((data) => {
+  
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+  
+        const data = await getOrdersHistory({
+          from,
+          to,
+          userId: filterUserId || undefined,
+        });
+  
         if (!cancelled) {
-          setError(null);
           setRows(Array.isArray(data) ? data : []);
         }
-      })
-      .catch((e) => {
+      } catch (e) {
         if (!cancelled) {
           setError(e.message);
           setRows([]);
         }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+  
+    fetchData();
+  
     return () => {
       cancelled = true;
     };
