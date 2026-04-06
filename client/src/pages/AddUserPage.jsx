@@ -20,7 +20,7 @@ export default function AddUserPage() {
         phone,
         address: address.trim() || undefined,
       });
-      navigate("/");
+      navigate("/users");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -31,12 +31,18 @@ export default function AddUserPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <h1>Add user</h1>
-        <Link to="/" className="btn">
+        <div>
+          <p className="eyebrow">Onboarding</p>
+          <h1>New user</h1>
+          <p className="lede muted">
+            Name and phone are required; address helps delivery runners.
+          </p>
+        </div>
+        <Link to="/users" className="btn btn-ghost">
           Back
         </Link>
       </div>
-      <form className="form" onSubmit={onSubmit}>
+      <form className="form card-elevated" onSubmit={onSubmit}>
         <label>
           Name
           <input
@@ -44,6 +50,7 @@ export default function AddUserPage() {
             onChange={(e) => setName(e.target.value)}
             required
             autoComplete="name"
+            placeholder="e.g. Priya Sharma"
           />
         </label>
         <label>
@@ -53,6 +60,7 @@ export default function AddUserPage() {
             onChange={(e) => setPhone(e.target.value)}
             required
             autoComplete="tel"
+            placeholder="+91 …"
           />
         </label>
         <label>
@@ -61,9 +69,14 @@ export default function AddUserPage() {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             rows={3}
+            placeholder="Building, area, landmark"
           />
         </label>
-        {error ? <p className="error">{error}</p> : null}
+        {error ? (
+          <div className="banner banner--error" role="alert">
+            {error}
+          </div>
+        ) : null}
         <button type="submit" className="btn primary" disabled={saving}>
           {saving ? "Saving…" : "Save user"}
         </button>

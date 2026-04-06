@@ -9,7 +9,6 @@ export default function UsersPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     getUsers()
       .then((data) => {
         if (!cancelled) setUsers(data);
@@ -25,19 +24,48 @@ export default function UsersPage() {
     };
   }, []);
 
-  if (loading) return <p className="muted">Loading users…</p>;
-  if (error) return <p className="error">{error}</p>;
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="loading-block">
+          <div className="loading-skeleton" aria-hidden="true" />
+          <p className="muted mt-load">Loading users…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page">
+        <div className="panel panel--error">
+          <p className="error mb-0">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
       <div className="page-head">
-        <h1>Users</h1>
+        <div>
+          <p className="eyebrow">Directory</p>
+          <h1>Users</h1>
+          <p className="lede muted">
+            Everyone who orders from you — open an order in one tap.
+          </p>
+        </div>
         <Link to="/users/new" className="btn primary">
           Add user
         </Link>
       </div>
       {users.length === 0 ? (
-        <p className="muted">No users yet. Add one to get started.</p>
+        <div className="empty-hint">
+          <p className="muted mb-0">
+            No users yet. <Link to="/users/new">Add your first user</Link>{" "}
+            to start taking orders.
+          </p>
+        </div>
       ) : (
         <ul className="user-list">
           {users.map((u) => (
@@ -49,9 +77,9 @@ export default function UsersPage() {
               </div>
               <Link
                 to={`/order?userId=${encodeURIComponent(u._id)}`}
-                className="btn"
+                className="btn primary btn-sm"
               >
-                Add order
+                New order
               </Link>
             </li>
           ))}

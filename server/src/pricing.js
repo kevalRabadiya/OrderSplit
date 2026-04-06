@@ -14,20 +14,27 @@ const EXTRA_UNIT_PRICES = {
 };
 
 /**
- * @param {{ thaliId: number | null, extraItems?: Record<string, number> }} input
+ * @param {{ thaliIds?: number[], extraItems?: Record<string, number> }} input
  * @returns {{ total: number }}
  * @throws {{ code: string, message: string }}
  */
-export function calculateTotal({ thaliId, extraItems = {} }) {
+export function calculateTotal({ thaliIds = [], extraItems = {} }) {
   let thaliPortion = 0;
-  if (thaliId != null && thaliId !== "") {
-    const id = Number(thaliId);
+  if (!Array.isArray(thaliIds)) {
+    const err = new Error("thaliIds must be an array");
+    err.code = "INVALID_THALI";
+    throw err;
+  }
+  for (const raw of thaliIds) {
+    const id = Number(raw);
     if (!Number.isInteger(id) || id < 1 || id > 5) {
-      const err = new Error("thaliId must be null or an integer 1–5");
+      const err = new Error(
+        "each thaliIds entry must be an integer from 1 to 5"
+      );
       err.code = "INVALID_THALI";
       throw err;
     }
-    thaliPortion = THALI_PRICES[id];
+    thaliPortion += THALI_PRICES[id];
   }
 
   const keys = ["roti", "sabji", "dalRice", "rice"];
