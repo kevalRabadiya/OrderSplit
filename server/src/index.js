@@ -9,10 +9,36 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const PORT = process.env.PORT;
 
 const app = express();
+
+/** Browsers reject `origin: *` together with `credentials: true`. We allow local dev frontends on any port. */
+function isAllowedCorsOrigin(origin) {
+  if (!origin) return true;
+  try {
+    const u = new URL(origin);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") return true;
+  } catch {
+    return false;
+  }
+  const extra = process.env.CORS_ORIGINS?.split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (extra?.length && extra.includes(origin)) return true;
+  return false;
+}
+
 app.use(
   cors({
-    origin: ["*"],
-    credentials: true,
+    origin(origin, callback) {
+      if (isAllowedCorsOrigin(origin)) {
+        callback(null, origin ?? true);
+      } else {
+        callback(null, false);
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: false,
   })
 );
 app.use(express.json());
