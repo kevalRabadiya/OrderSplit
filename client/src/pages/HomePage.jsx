@@ -9,9 +9,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
-import { useTheme } from "../theme/ThemeContext.jsx";
+import { useTheme } from "../theme/useTheme.js";
 
 function todayISO() {
   const d = new Date();
@@ -228,8 +229,7 @@ export default function HomePage() {
     return (
       <div className="page page--wide home-dashboard">
         <div className="loading-block">
-          <div className="loading-skeleton" aria-hidden="true" />
-          <p className="muted mt-load">Loading dashboard…</p>
+          <Loader label="Loading dashboard…" />
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatThaliQuantities } from "../utils/thaliFormat.js";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
@@ -47,6 +48,8 @@ export default function HistoryPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError(null);
     getOrdersHistory({
       from: dateFrom,
       to: dateTo,
@@ -154,8 +157,7 @@ export default function HistoryPage() {
 
       {loading ? (
         <div className="loading-block">
-          <div className="loading-skeleton" aria-hidden="true" />
-          <p className="muted mt-load">Loading orders…</p>
+          <Loader label="Loading orders…" />
         </div>
       ) : (
         <div className="card-elevated history-table-wrap">

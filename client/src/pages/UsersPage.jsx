@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import Loader from "../components/Loader.jsx";
 import { getUsers } from "../api";
 
 export default function UsersPage() {
@@ -28,8 +29,7 @@ export default function UsersPage() {
     return (
       <div className="page">
         <div className="loading-block">
-          <div className="loading-skeleton" aria-hidden="true" />
-          <p className="muted mt-load">Loading users…</p>
+          <Loader label="Loading users…" />
         </div>
       </div>
     );

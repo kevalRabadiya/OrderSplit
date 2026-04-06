@@ -5,7 +5,7 @@ import AddUserPage from "./pages/AddUserPage.jsx";
 import OrderPage from "./pages/OrderPage.jsx";
 import HistoryPage from "./pages/HistoryPage.jsx";
 import InvoicePage from "./pages/InvoicePage.jsx";
-import { useTheme } from "./theme/ThemeContext.jsx";
+import { useTheme } from "./theme/useTheme.js";
 import "./App.css";
 
 function ThemeToggle() {

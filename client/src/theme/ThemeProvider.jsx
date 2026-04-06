@@ -1,17 +1,12 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
+import { ThemeContext } from "./themeContext.js";
 
 const STORAGE_KEY = "tiffin_theme";
-
-/** @typedef {'light' | 'dark' | 'system'} ThemePreference */
-
-const ThemeContext = createContext(null);
 
 function getSystemDark() {
   if (typeof window === "undefined") return false;
@@ -73,12 +68,4 @@ export function ThemeProvider({ children }) {
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
-}
-
-export function useTheme() {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) {
-    throw new Error("useTheme must be used within ThemeProvider");
-  }
-  return ctx;
 }

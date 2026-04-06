@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import Loader from "../components/Loader.jsx";
 import {
   createOrder,
   deleteOrder,
@@ -17,11 +18,11 @@ function newRowId() {
 }
 
 const THALI_SELECT_OPTIONS = [
-  { value: "1", label: "Thali 1 — ₹110" },
-  { value: "2", label: "Thali 2 — ₹110" },
-  { value: "3", label: "Thali 3 — ₹90" },
-  { value: "4", label: "Thali 4 — ₹90" },
-  { value: "5", label: "Thali 5 — ₹75" },
+  { value: "1", label: "Thali 1 — ₹110 [ sabji x 2, roti x 5, dalRice x 1 ] " },
+  { value: "2", label: "Thali 2 — ₹110 [ sabji x 2, roti x 8 ]" },
+  { value: "3", label: "Thali 3 — ₹90 [ sabji x 1, roti x 5, dalRice x 1 ] " },
+  { value: "4", label: "Thali 4 — ₹90 [ sabji x 2, roti x 5]" },
+  { value: "5", label: "Thali 5 — ₹75 [ sabji x 1, roti x 5]" },
 ];
 
 function todayISO() {
@@ -69,6 +70,7 @@ export default function OrderPage() {
   const [loadError, setLoadError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingOrder, setLoadingOrder] = useState(false);
   const [busy, setBusy] = useState(false);
   const [hasSavedOrder, setHasSavedOrder] = useState(false);
 
@@ -160,6 +162,7 @@ export default function OrderPage() {
     let cancelled = false;
     setActionError(null);
     setSavedMessage(null);
+    setLoadingOrder(true);
     (async () => {
       try {
         const order = await getOrderForUser(userId, orderDate);
@@ -179,6 +182,8 @@ export default function OrderPage() {
           return;
         }
         setActionError(e.message);
+      } finally {
+        if (!cancelled) setLoadingOrder(false);
       }
     })();
     return () => {
@@ -310,6 +315,8 @@ export default function OrderPage() {
     );
   }
 
+  const actionsDisabled = busy || loadingOrder;
+
   return (
     <div className="page page--wide">
       <div className="page-head">
@@ -326,6 +333,13 @@ export default function OrderPage() {
         </Link>
       </div>
 
+      {loadingUsers ? (
+        <div className="loading-block">
+          <Loader label="Loading users…" />
+        </div>
+      ) : null}
+
+      {!loadingUsers ? (
       <form className="form order-form card-elevated" onSubmit={onCalculate}>
         <section className="form-section">
           <h2 className="form-section-title">Who &amp; when</h2>
@@ -360,6 +374,12 @@ export default function OrderPage() {
               </span>
             </label>
           </div>
+          {loadingOrder ? (
+            <Loader
+              variant="inline"
+              label="Loading order for this date…"
+            />
+          ) : null}
         </section>
 
         <section className="form-section">
@@ -369,6 +389,7 @@ export default function OrderPage() {
               type="button"
               className="btn btn-sm primary"
               onClick={addThaliRow}
+              disabled={actionsDisabled}
             >
               + Add thali
             </button>
@@ -484,14 +505,18 @@ export default function OrderPage() {
         </div>
 
         <div className="actions">
-          <button type="submit" className="btn primary" disabled={busy}>
+          <button
+            type="submit"
+            className="btn primary"
+            disabled={actionsDisabled}
+          >
             Calculate
           </button>
           <button
             type="button"
             className="btn"
             onClick={onSave}
-            disabled={busy || !userId}
+            disabled={actionsDisabled || !userId}
           >
             {hasSavedOrder ? "Save order (replace)" : "Save order"}
           </button>
@@ -499,7 +524,7 @@ export default function OrderPage() {
             type="button"
             className="btn"
             onClick={onUpdate}
-            disabled={busy || !userId || !hasSavedOrder}
+            disabled={actionsDisabled || !userId || !hasSavedOrder}
           >
             Update order
           </button>
@@ -507,12 +532,13 @@ export default function OrderPage() {
             type="button"
             className="btn danger"
             onClick={onDelete}
-            disabled={busy || !userId || !hasSavedOrder}
+            disabled={actionsDisabled || !userId || !hasSavedOrder}
           >
             Delete order
           </button>
         </div>
       </form>
+      ) : null}
     </div>
   );
 }

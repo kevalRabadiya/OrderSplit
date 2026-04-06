@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatThaliQuantities } from "../utils/thaliFormat.js";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
@@ -65,6 +66,8 @@ export default function InvoicePage() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError(null);
     getOrdersHistory({
       from,
       to,
@@ -180,8 +183,7 @@ export default function InvoicePage() {
 
       {loading ? (
         <div className="loading-block">
-          <div className="loading-skeleton" aria-hidden="true" />
-          <p className="muted mt-load">Loading invoice…</p>
+          <Loader label="Loading invoice…" />
         </div>
       ) : rows.length === 0 ? (
         <div className="card-elevated">
