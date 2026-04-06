@@ -20,7 +20,10 @@ function isAllowedCorsOrigin(origin: string | undefined) {
   try {
     const u = new URL(origin);
     if (u.protocol !== "http:" && u.protocol !== "https:") return false;
-    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") return true;
+    const host = u.hostname;
+    if (host === "localhost" || host === "127.0.0.1") return true;
+    // Render web services (e.g. https://ordersplit.onrender.com and other *.onrender.com sites)
+    if (u.protocol === "https:" && host.endsWith(".onrender.com")) return true;
   } catch {
     return false;
   }

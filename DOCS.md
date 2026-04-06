@@ -35,7 +35,7 @@ flowchart LR
 
 - Source is **TypeScript** under `server/src/`; **`npm run build`** emits **`server/dist/`** (run **`node dist/index.js`** in production).
 - **[server/src/index.ts](server/src/index.ts)** loads `dotenv`, creates the Express app, applies **`cors`** and **`express.json()`**, mounts **`/api/users`** and **`/api/orders`**, and connects **Mongoose** before listening on **`PORT`** (defaults to **5000**; **`MONGODB_URI`** is required).
-- **CORS** (`isAllowedCorsOrigin`): allows `http`/`https` origins whose host is **`localhost`** or **`127.0.0.1`**; additional exact origins can be listed in **`CORS_ORIGINS`** (comma-separated). Other origins are rejected.
+- **CORS** (`isAllowedCorsOrigin`): allows **`localhost`** / **`127.0.0.1`** (any port), **`https://*.onrender.com`**, and any full origin listed in **`CORS_ORIGINS`** (comma-separated). Other origins are rejected.
 - A generic **500** handler returns `{ error: "Internal server error" }` for uncaught errors.
 
 ### Data models
