@@ -24,7 +24,6 @@ const orderSchema = new mongoose.Schema(
       match: /^\d{4}-\d{2}-\d{2}$/,
       index: true,
     },
-    /** @deprecated legacy single thali; use thaliIds */
     thaliId: { type: Number, default: null },
     thaliIds: {
       type: [Number],
@@ -33,7 +32,6 @@ const orderSchema = new mongoose.Schema(
     extraItems: { type: extraItemsSchema, default: () => ({}) },
     totalAmount: { type: Number, required: true, min: 0 },
     createdAt: { type: Date, default: Date.now },
-    /** Soft delete: set when “deleted”; omitted or null means active */
     deletedAt: { type: Date, default: null },
   },
   { versionKey: false }

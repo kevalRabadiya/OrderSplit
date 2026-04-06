@@ -1,6 +1,6 @@
 # Tiffin / Thali ordering app
 
-Internal tool for entering daily thali orders: **React** (Vite) frontend, **Express** API, **MongoDB** database. Menu prices are fixed and calculated on the server.
+Internal tool for entering daily thali orders: **React** (Vite) frontend, **Express** API (**TypeScript**, compiled to `server/dist/`), **MongoDB** database. Menu prices are fixed and calculated on the server.
 
 ## Prerequisites
 
@@ -11,8 +11,8 @@ Internal tool for entering daily thali orders: **React** (Vite) frontend, **Expr
 
 **Server** — copy [`server/.env.example`](server/.env.example) to `server/.env` (ignored by git via [`server/.gitignore`](server/.gitignore)).
 
-- `MONGODB_URI` — local default in code is `mongodb://127.0.0.1:27017/tiffin`. For **Atlas**, use a URI that ends with `/tiffin` so the app uses the `tiffin` database (for example `mongodb+srv://USER:PASSWORD@cluster...mongodb.net/tiffin`).
-- `PORT` — default `5000`
+- `MONGODB_URI` — **required**. Use e.g. `mongodb://127.0.0.1:27017/tiffin` locally. For **Atlas**, use a URI that ends with `/tiffin` so the app uses the `tiffin` database (for example `mongodb+srv://USER:PASSWORD@cluster...mongodb.net/tiffin`).
+- `PORT` — optional; defaults to **5000** if unset (the process exits if `MONGODB_URI` is missing).
 
 **Atlas:** Allow your client IP (or `0.0.0.0/0` for quick tests) under **Network Access**, and give the database user read/write access.
 
@@ -37,6 +37,8 @@ cd server
 npm install
 npm run dev
 ```
+
+(`npm run dev` runs **TypeScript** via `tsx watch`. For production, run **`npm run build`** then **`npm start`** — `start` runs **`node dist/index.js`**.)
 
 Terminal 2 — frontend:
 

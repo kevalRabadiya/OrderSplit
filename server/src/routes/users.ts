@@ -5,7 +5,11 @@ export const usersRouter = Router();
 
 usersRouter.post("/", async (req, res, next) => {
   try {
-    const { name, phone, address } = req.body;
+    const { name, phone, address } = req.body as {
+      name?: unknown;
+      phone?: unknown;
+      address?: unknown;
+    };
     if (!name || !phone) {
       return res.status(400).json({ error: "name and phone are required" });
     }

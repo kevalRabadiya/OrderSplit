@@ -1,17 +1,21 @@
 import "dotenv/config";
-import express from "express";
+import express, { type ErrorRequestHandler } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import { usersRouter } from "./routes/users.js";
 import { ordersRouter } from "./routes/orders.js";
 
 const MONGODB_URI = process.env.MONGODB_URI;
-const PORT = process.env.PORT;
+const PORT = Number(process.env.PORT) || 5000;
+
+if (!MONGODB_URI) {
+  console.error("MONGODB_URI is required");
+  process.exit(1);
+}
 
 const app = express();
 
-/** Browsers reject `origin: *` together with `credentials: true`. We allow local dev frontends on any port. */
-function isAllowedCorsOrigin(origin) {
+function isAllowedCorsOrigin(origin: string | undefined) {
   if (!origin) return true;
   try {
     const u = new URL(origin);
@@ -46,18 +50,21 @@ app.use(express.json());
 app.use("/api/users", usersRouter);
 app.use("/api/orders", ordersRouter);
 
-app.use((err, _req, res, _next) => {
+const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);
   res.status(500).json({ error: "Internal server error" });
-});
+};
+app.use(errorHandler);
 
-mongoose.connect(MONGODB_URI)
+mongoose
+  .connect(MONGODB_URI)
   .then(() => {
     app.listen(PORT, () => {
       console.log(`API listening on http://localhost:${PORT}`);
       console.log("Connected to MongoDB");
     });
   })
-  .catch((err) => {
+  .catch((err: unknown) => {
     console.error("Error connecting to MongoDB:", err);
+    process.exit(1);
   });

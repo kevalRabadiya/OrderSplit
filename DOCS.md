@@ -33,14 +33,15 @@ flowchart LR
 
 ### Stack and entry
 
-- **[server/src/index.js](server/src/index.js)** loads `dotenv`, creates the Express app, applies **`cors`** and **`express.json()`**, mounts **`/api/users`** and **`/api/orders`**, and connects **Mongoose** before listening on `PORT` (default from env / code).
+- Source is **TypeScript** under `server/src/`; **`npm run build`** emits **`server/dist/`** (run **`node dist/index.js`** in production).
+- **[server/src/index.ts](server/src/index.ts)** loads `dotenv`, creates the Express app, applies **`cors`** and **`express.json()`**, mounts **`/api/users`** and **`/api/orders`**, and connects **Mongoose** before listening on **`PORT`** (defaults to **5000**; **`MONGODB_URI`** is required).
 - **CORS** (`isAllowedCorsOrigin`): allows `http`/`https` origins whose host is **`localhost`** or **`127.0.0.1`**; additional exact origins can be listed in **`CORS_ORIGINS`** (comma-separated). Other origins are rejected.
 - A generic **500** handler returns `{ error: "Internal server error" }` for uncaught errors.
 
 ### Data models
 
-- **[server/src/models/User.js](server/src/models/User.js)** — `users` collection: `name`, `phone`, `address` (optional string), `createdAt`.
-- **[server/src/models/Order.js](server/src/models/Order.js)** — `orders` collection:
+- **[server/src/models/User.ts](server/src/models/User.ts)** — `users` collection: `name`, `phone`, `address` (optional string), `createdAt`.
+- **[server/src/models/Order.ts](server/src/models/Order.ts)** — `orders` collection:
   - `userId` (ObjectId, ref User), `dateKey` (`YYYY-MM-DD`, indexed with `userId` **unique** per calendar day).
   - `thaliIds` (array of numbers); legacy **`thaliId`** (single) is deprecated but still read by the API.
   - `extraItems`: `roti`, `sabji`, `dalRice`, `rice` (non-negative counts).
@@ -49,20 +50,20 @@ flowchart LR
 
 ### Pricing logic
 
-- **[server/src/pricing.js](server/src/pricing.js)** exports **`THALI_PRICES`** (menu types `1`–`5`), **`EXTRA_UNIT_PRICES`**, and **`calculateTotal({ thaliIds, extraItems })`**.
+- **[server/src/pricing.ts](server/src/pricing.ts)** exports **`THALI_PRICES`** (menu types `1`–`5`), **`EXTRA_UNIT_PRICES`**, and **`calculateTotal({ thaliIds, extraItems })`**.
 - Thali cost is the **sum** of each selected thali’s price (the same type may appear **multiple times** in `thaliIds`).
 - Extra lines multiply unit counts by their unit prices. Invalid thali ids or non-integer / negative extras throw with codes such as `INVALID_THALI` / `INVALID_EXTRA`, mapped to **400** responses in routes.
 
 ### Users API
 
-- **[server/src/routes/users.js](server/src/routes/users.js)**
+- **[server/src/routes/users.ts](server/src/routes/users.ts)**
   - `POST /` — create user; requires `name` and `phone`; optional `address`.
   - `GET /` — list users, newest first.
   - `GET /:id` — single user or **404**.
 
 ### Orders API
 
-- **[server/src/routes/orders.js](server/src/routes/orders.js)** centralizes payload shaping and responses.
+- **[server/src/routes/orders.ts](server/src/routes/orders.ts)** centralizes payload shaping and responses (uses **`HttpError`** / **`mapPricingErrorToHttp`** for **400**s).
 
 **Normalization**
 
