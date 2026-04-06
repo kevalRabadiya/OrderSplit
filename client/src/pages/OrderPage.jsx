@@ -18,11 +18,11 @@ function newRowId() {
 }
 
 const THALI_SELECT_OPTIONS = [
-  { value: "1", label: "Thali 1 — ₹110" },
-  { value: "2", label: "Thali 2 — ₹110" },
-  { value: "3", label: "Thali 3 — ₹90" },
-  { value: "4", label: "Thali 4 — ₹90" },
-  { value: "5", label: "Thali 5 — ₹75" },
+  { value: "1", label: "Thali 1 — ₹110 [ sabji x 2, roti x 5, dalRice x 1 ] " },
+  { value: "2", label: "Thali 2 — ₹110 [ sabji x 2, roti x 8 ]" },
+  { value: "3", label: "Thali 3 — ₹90 [ sabji x 1, roti x 5, dalRice x 1 ] " },
+  { value: "4", label: "Thali 4 — ₹90 [ sabji x 2, roti x 5]" },
+  { value: "5", label: "Thali 5 — ₹75 [ sabji x 1, roti x 5]" },
 ];
 
 function todayISO() {
