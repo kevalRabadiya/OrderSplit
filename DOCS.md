@@ -1,4 +1,4 @@
-# Tiffin orders — features and implementation
+# Flat Expense — features and implementation
 
 For **setup, environment variables, run commands, and a compact API table**, see [README.md](README.md). This document describes **product behavior** and **how the client and server implement it**.
 

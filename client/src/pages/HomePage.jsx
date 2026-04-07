@@ -12,6 +12,7 @@ import {
 import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
+import { computeDailyOptimization } from "../utils/dailyOptimization.js";
 import { useTheme } from "../theme/useTheme.js";
 
 function todayISO() {
@@ -131,6 +132,19 @@ function aggregateMonthOrders(orders, from, to) {
   };
 }
 
+function buildDailyOptimizationChart(dayMap, from, to) {
+  return eachDateKeyInRange(from, to).map((dateKey) => {
+    const dom = Number(dateKey.slice(8, 10));
+    const m = dayMap.get(dateKey);
+    return {
+      dateKey,
+      day: dom,
+      optimizedTotal: m ? m.optimizedTotal : 0,
+      thaliSubtotal: m ? m.thaliSubtotal : 0,
+    };
+  });
+}
+
 /** Matches `index.css` :root / [data-theme="dark"] chart-relevant tokens. */
 const CHART_THEME = {
   light: {
@@ -175,8 +189,18 @@ export default function HomePage() {
     [monthOrders, range.from, range.to]
   );
 
-  const periodBadgePrefix =
-    chartMonth === currentMonthValue() ? "This month" : monthHumanLabel(chartMonth);
+  const dailyOptimization = useMemo(
+    () => computeDailyOptimization(monthOrders),
+    [monthOrders]
+  );
+
+  const dailyOptimizationChart = useMemo(
+    () => buildDailyOptimizationChart(dailyOptimization, range.from, range.to),
+    [dailyOptimization, range.from, range.to]
+  );
+
+  // const periodBadgePrefix =
+  //   chartMonth === currentMonthValue() ? "This month" : monthHumanLabel(chartMonth);
 
   const topCustomersWithNames = useMemo(() => {
     const map = new Map(users.map((u) => [String(u._id), u.name]));
@@ -425,6 +449,77 @@ export default function HomePage() {
         </div>
       </div>
 
+      <div className="home-charts-row">
+        <div className="card-elevated home-chart-card home-chart-card--span2">
+          <h2 className="form-section-title home-chart-title">
+            Thali/Tiffin bundles subtotal vs optimized total ({monthHumanLabel(chartMonth)})
+          </h2>
+          <div className="home-chart-inner">
+            {stats.orderCount === 0 ? (
+              <p className="muted mb-0 home-chart-empty">
+                No orders in {monthHumanLabel(chartMonth)}.
+              </p>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart
+                  data={dailyOptimizationChart}
+                  margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={chartColors.grid}
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartColors.border }}
+                  />
+                  <YAxis
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartColors.border }}
+                    width={40}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--bg-elevated)",
+                      border: `1px solid ${chartColors.border}`,
+                      borderRadius: "var(--radius-sm)",
+                      color: "var(--text-h)",
+                    }}
+                    formatter={(value, name) => [
+                      `₹${value}`,
+                      name === "thaliSubtotal"
+                        ? "Thali subtotal"
+                        : "Optimized total",
+                    ]}
+                    labelFormatter={(_, payload) =>
+                      payload?.[0]?.payload?.dateKey
+                        ? formatDateDDMMYYYY(payload[0].payload.dateKey)
+                        : ""
+                    }
+                  />
+                  <Bar
+                    dataKey="thaliSubtotal"
+                    fill="color-mix(in srgb, var(--accent) 55%, #ffffff)"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={24}
+                  />
+                  <Bar
+                    dataKey="optimizedTotal"
+                    fill={chartColors.accent}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={24}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
+
       <section className="home-section">
         <div className="home-section-head">
           <h2 className="form-section-title mb-0">Recent orders</h2>
@@ -465,7 +560,7 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="home-section">
+      {/* <section className="home-section">
         <div className="home-section-head">
           <h2 className="form-section-title mb-0">Users</h2>
           <Link to="/users" className="small muted home-section-link">
@@ -509,7 +604,7 @@ export default function HomePage() {
             })}
           </ul>
         )}
-      </section>
+      </section> */}
     </div>
   );
 }

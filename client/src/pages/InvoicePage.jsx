@@ -4,6 +4,9 @@ import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatThaliQuantities } from "../utils/thaliFormat.js";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
+import { formatOrderExtras } from "../utils/formatOrderExtras.js";
+import { aggregateHistorySummary, formatThaliSummaryLine } from "../utils/aggregateHistorySummary.js";
+import { computeEqualSplitByDay } from "../utils/dailyOptimization.js";
 
 function currentMonthValue() {
   const d = new Date();
@@ -28,16 +31,6 @@ function monthToDateRange(ym) {
   const last = new Date(y, m, 0).getDate();
   const to = `${y}-${String(m).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
   return { from, to };
-}
-
-function formatExtras(e) {
-  if (!e) return "—";
-  const parts = [];
-  if (e.roti) parts.push(`Roti ${e.roti}`);
-  if (e.sabji) parts.push(`Sabji ${e.sabji}`);
-  if (e.dalRice) parts.push(`Dal ${e.dalRice}`);
-  if (e.rice) parts.push(`Rice ${e.rice}`);
-  return parts.length ? parts.join(", ") : "—";
 }
 
 export default function InvoicePage() {
@@ -75,7 +68,6 @@ export default function InvoicePage() {
         const data = await getOrdersHistory({
           from,
           to,
-          userId: filterUserId || undefined,
         });
   
         if (!cancelled) {
@@ -98,24 +90,57 @@ export default function InvoicePage() {
     return () => {
       cancelled = true;
     };
-  }, [from, to, filterUserId]);
+  }, [from, to]);
+
+  const split = useMemo(() => computeEqualSplitByDay(rows), [rows]);
+
+  function formatAggregatedExtrasForInvoice(dayRows) {
+    const s = aggregateHistorySummary(dayRows);
+    const parts = [];
+    if (s.rotiTotal > 0) parts.push(`Roti ${s.rotiTotal}`);
+    const sabjiPortions = (s.sabjiLegacyTotal || 0) + (s.sabjiNamedPortions || 0);
+    if (sabjiPortions > 0) parts.push(`Sabji ${sabjiPortions}`);
+    const dalUnits =
+      (s.dalRiceTypeCounts?.Pulav || 0) +
+      (s.dalRiceTypeCounts?.Khichdi || 0) +
+      (s.dalRiceTypeCounts?.Dalrice || 0) +
+      (s.dalRiceLegacyTotal || 0);
+    if (dalUnits > 0) parts.push(`Dal-rice ${dalUnits}`);
+    if (s.riceTotal > 0) parts.push(`Rice ${s.riceTotal}`);
+    return parts.length ? parts.join(", ") : "—";
+  }
 
   const grouped = useMemo(() => {
     const map = new Map();
     for (const row of rows) {
       const key = row.userId || "unknown";
+      if (filterUserId && String(key) !== String(filterUserId)) continue;
       if (!map.has(key)) {
         map.set(key, {
           userId: key,
           user: row.user,
-          orders: [],
+          days: [],
           subtotal: 0,
+          optimizedSubtotal: 0,
         });
       }
       const g = map.get(key);
-      g.orders.push(row);
       g.subtotal += Number(row.totalAmount) || 0;
     }
+
+    // Build date-wise rows per user (one line per dateKey).
+    for (const row of rows) {
+      const key = row.userId || "unknown";
+      if (filterUserId && String(key) !== String(filterUserId)) continue;
+      if (!map.has(key)) continue;
+      const g = map.get(key);
+      if (!g._byDate) g._byDate = new Map();
+      const dk = String(row.dateKey || "");
+      if (!dk) continue;
+      if (!g._byDate.has(dk)) g._byDate.set(dk, []);
+      g._byDate.get(dk).push(row);
+    }
+
     const list = [...map.values()];
     list.sort((a, b) => {
       const an = (a.user?.name || "").toLowerCase();
@@ -124,15 +149,38 @@ export default function InvoicePage() {
       return String(a.userId).localeCompare(String(b.userId));
     });
     for (const g of list) {
-      g.orders.sort((x, y) => String(y.dateKey).localeCompare(String(x.dateKey)));
+      const entries = g._byDate ? [...g._byDate.entries()] : [];
+      entries.sort((a, b) => String(b[0]).localeCompare(String(a[0])));
+      g.days = entries.map(([dateKey, dayRows]) => {
+        const originalTotal = dayRows.reduce(
+          (s, r) => s + (Number(r?.totalAmount) || 0),
+          0
+        );
+        const share = split.userDayShare.get(String(g.userId))?.get(dateKey) || 0;
+        const roundingDelta = split.dayMap.get(dateKey)?.roundingDelta || 0;
+        g.optimizedSubtotal += share;
+        return {
+          dateKey,
+          dayRows,
+          originalTotal,
+          optimizedShare: share,
+          roundingDelta,
+        };
+      });
+      delete g._byDate;
     }
     return list;
-  }, [rows]);
+  }, [rows, filterUserId, split.dayMap, split.userDayShare]);
 
   const grandTotal = useMemo(
     () => rows.reduce((s, r) => s + (Number(r.totalAmount) || 0), 0),
     [rows]
   );
+
+  const optimizedGrandTotal = useMemo(() => {
+    if (!grouped.length) return 0;
+    return grouped.reduce((s, g) => s + (Number(g.optimizedSubtotal) || 0), 0);
+  }, [grouped]);
 
   return (
     <div className="page page--wide">
@@ -216,6 +264,8 @@ export default function InvoicePage() {
                 <div className="invoice-user-subtotal">
                   <span className="muted invoice-subtotal-label">Subtotal</span>
                   <span className="invoice-subtotal-amount">₹{g.subtotal}</span>
+                  <span className="muted invoice-subtotal-label">Optimized</span>
+                  <span className="invoice-subtotal-amount">₹{g.optimizedSubtotal}</span>
                 </div>
               </div>
               <div className="table-scroll">
@@ -225,24 +275,37 @@ export default function InvoicePage() {
                       <th>Date</th>
                       <th>Thali (qty)</th>
                       <th>Extras</th>
-                      <th className="history-col-total">Amount</th>
+                      <th className="history-col-total">Original</th>
+                      <th className="history-col-total">Optimized share</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {g.orders.map((row) => (
-                      <tr key={String(row._id ?? `${row.userId}-${row.dateKey}`)}>
-                        <td>{formatDateDDMMYYYY(row.dateKey)}</td>
-                        <td className="history-cell-mono">
-                          {formatThaliQuantities(row.thaliIds)}
-                        </td>
-                        <td className="history-cell-extras">
-                          {formatExtras(row.extraItems)}
-                        </td>
-                        <td className="history-col-total">
-                          <strong>₹{row.totalAmount}</strong>
-                        </td>
-                      </tr>
-                    ))}
+                    {g.days.map((d) => {
+                      const s = aggregateHistorySummary(d.dayRows);
+                      const thaliLine =
+                        formatThaliSummaryLine(s.thaliCounts) ||
+                        formatThaliQuantities([]);
+                      const extrasLine = formatAggregatedExtrasForInvoice(d.dayRows);
+                      return (
+                        <tr key={`${g.userId}-${d.dateKey}`}>
+                          <td>{formatDateDDMMYYYY(d.dateKey)}</td>
+                          <td className="history-cell-mono">{thaliLine || "—"}</td>
+                          <td className="history-cell-extras">{extrasLine}</td>
+                          <td className="history-col-total">
+                            <strong>₹{d.originalTotal}</strong>
+                          </td>
+                          <td className="history-col-total">
+                            <strong>₹{d.optimizedShare}</strong>
+                            {d.roundingDelta ? (
+                              <div className="small muted">
+                                Δ {d.roundingDelta > 0 ? "+" : ""}
+                                {d.roundingDelta}
+                              </div>
+                            ) : null}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -254,6 +317,8 @@ export default function InvoicePage() {
               {filterUserId ? "Total (filtered)" : "Grand total (month)"}
             </span>
             <span className="invoice-grand-amount">₹{grandTotal}</span>
+            <span className="invoice-grand-label">Optimized total (split)</span>
+            <span className="invoice-grand-amount">₹{optimizedGrandTotal}</span>
           </div>
         </>
       )}

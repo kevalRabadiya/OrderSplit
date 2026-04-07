@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Loader from "../components/Loader.jsx";
 import {
@@ -18,11 +18,18 @@ function newRowId() {
 }
 
 const THALI_SELECT_OPTIONS = [
-  { value: "1", label: "Thali 1 — ₹110 [ sabji x 2, roti x 5, dalRice x 1 ] " },
-  { value: "2", label: "Thali 2 — ₹110 [ sabji x 2, roti x 8 ]" },
-  { value: "3", label: "Thali 3 — ₹90 [ sabji x 1, roti x 5, dalRice x 1 ] " },
-  { value: "4", label: "Thali 4 — ₹90 [ sabji x 2, roti x 5]" },
-  { value: "5", label: "Thali 5 — ₹75 [ sabji x 1, roti x 5]" },
+  { value: "1", label: "Thali 1 [ sabji x 2, roti x 5, dalRice x 1 ] " },
+  { value: "2", label: "Thali 2 [ sabji x 2, roti x 8 ]" },
+  { value: "3", label: "Thali 3 [ sabji x 1, roti x 5, dalRice x 1 ] " },
+  { value: "4", label: "Thali 4 [ sabji x 2, roti x 5 ]" },
+  { value: "5", label: "Thali 5 [ sabji x 1, roti x 5 ]" },
+];
+
+const DAL_RICE_OPTIONS = [
+  { value: "", label: "None" },
+  { value: "Pulav", label: "Pulav" },
+  { value: "Khichdi", label: "Khichdi" },
+  { value: "Dalrice", label: "Dalrice" },
 ];
 
 function todayISO() {
@@ -42,6 +49,14 @@ function emptyThaliRows() {
   return [];
 }
 
+/** Avoid `n || 0` (0 is valid) and coerce number inputs safely for the API. */
+function toNonNegIntField(v) {
+  if (v === "" || v === null || v === undefined) return 0;
+  const n = Number(v);
+  if (!Number.isFinite(n) || !Number.isInteger(n) || n < 0) return 0;
+  return n;
+}
+
 export default function OrderPage() {
   const [searchParams] = useSearchParams();
   const paramUserId = searchParams.get("userId");
@@ -51,8 +66,9 @@ export default function OrderPage() {
   const [userId, setUserId] = useState("");
   const [thaliRows, setThaliRows] = useState(emptyThaliRows);
   const [roti, setRoti] = useState(0);
-  const [sabji, setSabji] = useState(0);
-  const [dalRice, setDalRice] = useState(0);
+  const [sabji1, setSabji1] = useState("");
+  const [sabji2, setSabji2] = useState("");
+  const [dalRiceType, setDalRiceType] = useState("");
   const [rice, setRice] = useState(0);
   const [orderDate, setOrderDate] = useState(todayISO);
 
@@ -76,12 +92,18 @@ export default function OrderPage() {
 
   const extraItems = useMemo(
     () => ({
-      roti: Number(roti) || 0,
-      sabji: Number(sabji) || 0,
-      dalRice: Number(dalRice) || 0,
-      rice: Number(rice) || 0,
+      roti: toNonNegIntField(roti),
+      rice: toNonNegIntField(rice),
+      sabji1: typeof sabji1 === "string" ? sabji1 : String(sabji1 ?? ""),
+      sabji2: typeof sabji2 === "string" ? sabji2 : String(sabji2 ?? ""),
+      dalRiceType:
+        dalRiceType === "Pulav" ||
+        dalRiceType === "Khichdi" ||
+        dalRiceType === "Dalrice"
+          ? dalRiceType
+          : "",
     }),
-    [roti, sabji, dalRice, rice]
+    [roti, rice, sabji1, sabji2, dalRiceType]
   );
 
   const thaliIds = useMemo(
@@ -99,6 +121,37 @@ export default function OrderPage() {
     }),
     [thaliIds, extraItems]
   );
+
+  const payloadRef = useRef(payloadBase);
+  payloadRef.current = payloadBase;
+
+  /** Only apply the latest preview (debounced or Calculate); drop stale HTTP responses. */
+  const previewGenRef = useRef(0);
+
+  const dalRiceFieldLabel =
+    dalRiceType === "Pulav" ||
+    dalRiceType === "Khichdi" ||
+    dalRiceType === "Dalrice"
+      ? `${dalRiceType} (₹40)`
+      : "Dal rice (₹40)";
+
+  /** Keep total in sync when thalis / extras change (preview uses latest payload). */
+  useEffect(() => {
+    if (loadingUsers || loadingOrder) return;
+    const id = setTimeout(() => {
+      const g = ++previewGenRef.current;
+      previewOrder(payloadRef.current)
+        .then(({ totalAmount }) => {
+          if (g === previewGenRef.current) {
+            setPreviewTotal(totalAmount);
+          }
+        })
+        .catch(() => {
+          /* errors surfaced via Calculate / Save */
+        });
+    }, 300);
+    return () => clearTimeout(id);
+  }, [payloadBase, loadingUsers, loadingOrder]);
 
   useEffect(() => {
     let cancelled = false;
@@ -150,8 +203,20 @@ export default function OrderPage() {
           : [];
     setThaliRows(rowsFromThaliIds(ids));
     setRoti(order.extraItems?.roti ?? 0);
-    setSabji(order.extraItems?.sabji ?? 0);
-    setDalRice(order.extraItems?.dalRice ?? 0);
+    setSabji1(
+      typeof order.extraItems?.sabji1 === "string"
+        ? order.extraItems.sabji1
+        : ""
+    );
+    setSabji2(
+      typeof order.extraItems?.sabji2 === "string"
+        ? order.extraItems.sabji2
+        : ""
+    );
+    const drt = order.extraItems?.dalRiceType;
+    setDalRiceType(
+      drt === "Pulav" || drt === "Khichdi" || drt === "Dalrice" ? drt : ""
+    );
     setRice(order.extraItems?.rice ?? 0);
     setPreviewTotal(order.totalAmount ?? null);
     setHasSavedOrder(true);
@@ -174,8 +239,9 @@ export default function OrderPage() {
         if (e.message === "Order not found") {
           setThaliRows(emptyThaliRows());
           setRoti(0);
-          setSabji(0);
-          setDalRice(0);
+          setSabji1("");
+          setSabji2("");
+          setDalRiceType("");
           setRice(0);
           setPreviewTotal(null);
           setHasSavedOrder(false);
@@ -213,11 +279,16 @@ export default function OrderPage() {
     setActionError(null);
     setSavedMessage(null);
     setBusy(true);
+    const g = ++previewGenRef.current;
     try {
-      const { totalAmount } = await previewOrder(payloadBase);
-      setPreviewTotal(totalAmount);
+      const { totalAmount } = await previewOrder(payloadRef.current);
+      if (g === previewGenRef.current) {
+        setPreviewTotal(totalAmount);
+      }
     } catch (err) {
-      setActionError(err.message);
+      if (g === previewGenRef.current) {
+        setActionError(err.message);
+      }
     } finally {
       setBusy(false);
     }
@@ -236,7 +307,7 @@ export default function OrderPage() {
       const { totalAmount, order } = await createOrder({
         userId,
         date: orderDate,
-        ...payloadBase,
+        ...payloadRef.current,
       });
       setPreviewTotal(totalAmount);
       if (order) applyOrderToForm(order);
@@ -260,7 +331,7 @@ export default function OrderPage() {
     try {
       const { totalAmount, order } = await updateOrder(userId, {
         date: orderDate,
-        ...payloadBase,
+        ...payloadRef.current,
       });
       setPreviewTotal(totalAmount);
       if (order) applyOrderToForm(order);
@@ -289,8 +360,9 @@ export default function OrderPage() {
       await deleteOrder(userId, orderDate);
       setThaliRows(emptyThaliRows());
       setRoti(0);
-      setSabji(0);
-      setDalRice(0);
+      setSabji1("");
+      setSabji2("");
+      setDalRiceType("");
       setRice(0);
       setPreviewTotal(null);
       setHasSavedOrder(false);
@@ -440,6 +512,9 @@ export default function OrderPage() {
 
         <fieldset className="form-section extras">
           <legend className="form-section-title">Extra items</legend>
+          <p className="hint muted mb-0">
+            Each filled sabji name adds ₹40. One dal-rice choice adds ₹40.
+          </p>
           <div className="grid-2">
             <label>
               Roti (₹10)
@@ -452,26 +527,6 @@ export default function OrderPage() {
               />
             </label>
             <label>
-              Sabji (₹40)
-              <input
-                type="number"
-                min={0}
-                step={1}
-                value={sabji}
-                onChange={(e) => setSabji(e.target.value)}
-              />
-            </label>
-            <label>
-              Dal rice (₹40)
-              <input
-                type="number"
-                min={0}
-                step={1}
-                value={dalRice}
-                onChange={(e) => setDalRice(e.target.value)}
-              />
-            </label>
-            <label>
               Rice (₹30)
               <input
                 type="number"
@@ -480,6 +535,41 @@ export default function OrderPage() {
                 value={rice}
                 onChange={(e) => setRice(e.target.value)}
               />
+            </label>
+            <label>
+              Sabji 1 <span className="muted">(₹40 if filled)</span>
+              <input
+                type="text"
+                value={sabji1}
+                onChange={(e) => setSabji1(e.target.value)}
+                placeholder="e.g. Aloo gobi"
+                autoComplete="off"
+                maxLength={80}
+              />
+            </label>
+            <label>
+              Sabji 2 <span className="muted">(₹40 if filled)</span>
+              <input
+                type="text"
+                value={sabji2}
+                onChange={(e) => setSabji2(e.target.value)}
+                placeholder="e.g. Dal tadka"
+                autoComplete="off"
+                maxLength={80}
+              />
+            </label>
+            <label className="extras-grid-full">
+              {dalRiceFieldLabel}
+              <select
+                value={dalRiceType}
+                onChange={(e) => setDalRiceType(e.target.value)}
+              >
+                {DAL_RICE_OPTIONS.map((o) => (
+                  <option key={o.value || "none"} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
         </fieldset>
