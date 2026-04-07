@@ -12,7 +12,10 @@ import {
 import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
-import { computeDailyOptimization } from "../utils/dailyOptimization.js";
+import {
+  computeDailyOptimization,
+  computeEqualSplitByDay,
+} from "../utils/dailyOptimization.js";
 import { useTheme } from "../theme/useTheme.js";
 
 function todayISO() {
@@ -194,22 +197,65 @@ export default function HomePage() {
     [monthOrders]
   );
 
+  const split = useMemo(() => computeEqualSplitByDay(monthOrders), [monthOrders]);
+
   const dailyOptimizationChart = useMemo(
     () => buildDailyOptimizationChart(dailyOptimization, range.from, range.to),
     [dailyOptimization, range.from, range.to]
   );
+
+  const dailyChartOptimized = useMemo(() => {
+    const amountByDate = new Map(
+      [...dailyOptimization.entries()].map(([k, v]) => [k, v.optimizedTotal])
+    );
+    const ordersByDate = new Map(
+      stats.dailyChart.map((d) => [d.dateKey, Number(d.orders) || 0])
+    );
+    return eachDateKeyInRange(range.from, range.to).map((dateKey) => {
+      const dom = Number(dateKey.slice(8, 10));
+      return {
+        dateKey,
+        day: dom,
+        amount: amountByDate.get(dateKey) ?? 0,
+        orders: ordersByDate.get(dateKey) ?? 0,
+      };
+    });
+  }, [dailyOptimization, range.from, range.to, stats.dailyChart]);
+
+  const optimizedMonthTotal = useMemo(() => {
+    let sum = 0;
+    for (const dateKey of eachDateKeyInRange(range.from, range.to)) {
+      sum += dailyOptimization.get(dateKey)?.optimizedTotal ?? 0;
+    }
+    return sum;
+  }, [dailyOptimization, range.from, range.to]);
+
+  const topOptimizedUsers = useMemo(() => {
+    const totals = new Map();
+    for (const dateKey of eachDateKeyInRange(range.from, range.to)) {
+      const m = split.dayMap.get(dateKey);
+      if (!m) continue;
+      for (const uid of m.userIds) {
+        totals.set(uid, (totals.get(uid) || 0) + m.share);
+      }
+    }
+    return [...totals.entries()]
+      .map(([userId, amount]) => ({ userId, amount }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+  }, [split.dayMap, range.from, range.to]);
 
   // const periodBadgePrefix =
   //   chartMonth === currentMonthValue() ? "This month" : monthHumanLabel(chartMonth);
 
   const topCustomersWithNames = useMemo(() => {
     const map = new Map(users.map((u) => [String(u._id), u.name]));
-    return stats.topCustomers.map((c) => ({
+    return topOptimizedUsers.map((c) => ({
       ...c,
       name: map.get(c.userId) || "User",
       label: (map.get(c.userId) || "User").slice(0, 18),
     }));
-  }, [stats.topCustomers, users]);
+  }, [topOptimizedUsers, users]);
 
   useEffect(() => {
     let cancelled = false;
@@ -325,7 +371,7 @@ export default function HomePage() {
           <p className="home-stat-sublabel muted small mb-0">
             {monthHumanLabel(chartMonth)}
           </p>
-          <p className="home-stat-value">₹{stats.totalAmount}</p>
+          <p className="home-stat-value">₹{optimizedMonthTotal}</p>
         </div>
         <div className="card-elevated home-stat-card">
           <p className="home-stat-label muted mb-0">Users</p>
@@ -346,7 +392,7 @@ export default function HomePage() {
             ) : (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart
-                  data={stats.dailyChart}
+                  data={dailyChartOptimized}
                   margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
                 >
                   <CartesianGrid
