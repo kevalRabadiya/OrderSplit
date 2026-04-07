@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getHousekeeperAttendance, setHousekeeperAttendance } from "../api";
+import Loader from "../components/Loader.jsx";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
 
 function monthValueFromDate(d) {
@@ -175,7 +176,9 @@ export default function HousekeeperPage() {
           ))}
         </div>
         {loading ? (
-          <p className="muted mb-0">Loading calendar…</p>
+          <div className="loading-block">
+            <Loader label="Loading HouseKeeper calendar…" />
+          </div>
         ) : (
           <div className="housekeeper-calendar-grid">
             {cells.map((cell, idx) => {
