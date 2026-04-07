@@ -4,6 +4,7 @@ import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatThaliQuantities } from "../utils/thaliFormat.js";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
+import { formatOrderExtras } from "../utils/formatOrderExtras.js";
 
 function currentMonthValue() {
   const d = new Date();
@@ -28,16 +29,6 @@ function monthToDateRange(ym) {
   const last = new Date(y, m, 0).getDate();
   const to = `${y}-${String(m).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
   return { from, to };
-}
-
-function formatExtras(e) {
-  if (!e) return "—";
-  const parts = [];
-  if (e.roti) parts.push(`Roti ${e.roti}`);
-  if (e.sabji) parts.push(`Sabji ${e.sabji}`);
-  if (e.dalRice) parts.push(`Dal ${e.dalRice}`);
-  if (e.rice) parts.push(`Rice ${e.rice}`);
-  return parts.length ? parts.join(", ") : "—";
 }
 
 export default function InvoicePage() {
@@ -236,7 +227,7 @@ export default function InvoicePage() {
                           {formatThaliQuantities(row.thaliIds)}
                         </td>
                         <td className="history-cell-extras">
-                          {formatExtras(row.extraItems)}
+                          {formatOrderExtras(row.extraItems)}
                         </td>
                         <td className="history-col-total">
                           <strong>₹{row.totalAmount}</strong>

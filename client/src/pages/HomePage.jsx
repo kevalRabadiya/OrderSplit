@@ -175,8 +175,8 @@ export default function HomePage() {
     [monthOrders, range.from, range.to]
   );
 
-  const periodBadgePrefix =
-    chartMonth === currentMonthValue() ? "This month" : monthHumanLabel(chartMonth);
+  // const periodBadgePrefix =
+  //   chartMonth === currentMonthValue() ? "This month" : monthHumanLabel(chartMonth);
 
   const topCustomersWithNames = useMemo(() => {
     const map = new Map(users.map((u) => [String(u._id), u.name]));
@@ -465,7 +465,7 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="home-section">
+      {/* <section className="home-section">
         <div className="home-section-head">
           <h2 className="form-section-title mb-0">Users</h2>
           <Link to="/users" className="small muted home-section-link">
@@ -509,7 +509,7 @@ export default function HomePage() {
             })}
           </ul>
         )}
-      </section>
+      </section> */}
     </div>
   );
 }

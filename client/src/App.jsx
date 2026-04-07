@@ -68,7 +68,7 @@ function Layout({ children }) {
     <div className="app">
       <header className="nav">
         <Link to="/" className="brand">
-          Tiffin orders
+          Flat Expense
         </Link>
         <div className="nav-tools">
           <nav className="nav-links">

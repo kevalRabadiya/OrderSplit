@@ -8,6 +8,7 @@ import {
   calculateTotal,
   mapPricingErrorToHttp,
   type ExtraItemsInput,
+  type ParsedExtraItems,
 } from "../pricing.js";
 
 export const ordersRouter = Router();
@@ -18,9 +19,10 @@ function normalizeExtraItems(body: OrderBody) {
   const e = (body.extraItems ?? {}) as ExtraItemsInput;
   return {
     roti: e.roti,
-    sabji: e.sabji,
-    dalRice: e.dalRice,
     rice: e.rice,
+    sabji1: e.sabji1,
+    sabji2: e.sabji2,
+    dalRiceType: e.dalRiceType,
   };
 }
 
@@ -90,18 +92,22 @@ function orderPayloadFromBody(body: OrderBody) {
     throw new HttpError(400, "date must be YYYY-MM-DD");
   }
   let total: number;
+  let parsedExtras: ParsedExtraItems;
   try {
-    ({ total } = calculateTotal({ thaliIds, extraItems }));
+    ({ total, parsedExtras } = calculateTotal({ thaliIds, extraItems }));
   } catch (e) {
     const mapped = mapPricingErrorToHttp(e);
     if (mapped) throw mapped;
     throw e;
   }
   const extraItemsDoc = {
-    roti: Number(extraItems.roti) || 0,
-    sabji: Number(extraItems.sabji) || 0,
-    dalRice: Number(extraItems.dalRice) || 0,
-    rice: Number(extraItems.rice) || 0,
+    roti: parsedExtras.roti,
+    rice: parsedExtras.rice,
+    sabji1: parsedExtras.sabji1,
+    sabji2: parsedExtras.sabji2,
+    dalRiceType: parsedExtras.dalRiceType,
+    sabji: 0,
+    dalRice: 0,
   };
   return { dateKey, thaliIds, extraItems: extraItemsDoc, total };
 }

@@ -3,9 +3,17 @@ import mongoose from "mongoose";
 const extraItemsSchema = new mongoose.Schema(
   {
     roti: { type: Number, default: 0, min: 0 },
+    rice: { type: Number, default: 0, min: 0 },
+    sabji1: { type: String, default: "" },
+    sabji2: { type: String, default: "" },
+    dalRiceType: {
+      type: String,
+      default: "",
+      enum: ["", "Pulav", "Khichdi", "Dalrice"],
+    },
+    /** Legacy numeric extras (pre sabji1/sabji2/dalRiceType); kept for old documents. */
     sabji: { type: Number, default: 0, min: 0 },
     dalRice: { type: Number, default: 0, min: 0 },
-    rice: { type: Number, default: 0, min: 0 },
   },
   { _id: false }
 );

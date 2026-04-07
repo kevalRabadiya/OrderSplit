@@ -8,14 +8,74 @@ const THALI_PRICES: Record<number, number> = {
   5: 75,
 };
 
-const EXTRA_UNIT_PRICES: Record<string, number> = {
-  roti: 10,
-  sabji: 40,
-  dalRice: 40,
-  rice: 30,
-};
+/** Allowed values for dal-rice dropdown (₹40 when set). */
+export const DAL_RICE_TYPES = ["Pulav", "Khichdi", "Dalrice"] as const;
+
+const ROTI_PRICE = 10;
+const RICE_PRICE = 30;
+const SABJI_UNIT_PRICE = 40;
+const DAL_RICE_UNIT_PRICE = 40;
+const SABJI_MAX_LEN = 80;
 
 export type ExtraItemsInput = Record<string, unknown>;
+
+export type ParsedExtraItems = {
+  roti: number;
+  rice: number;
+  sabji1: string;
+  sabji2: string;
+  dalRiceType: string;
+};
+
+function parseNonNegInt(raw: unknown, key: string): number {
+  const n = raw === undefined || raw === null ? 0 : Number(raw);
+  if (!Number.isFinite(n) || n < 0 || !Number.isInteger(n)) {
+    const err = new Error(
+      `extraItems.${key} must be a non-negative integer`
+    ) as Error & { code: string };
+    err.code = "INVALID_EXTRA";
+    throw err;
+  }
+  return n;
+}
+
+function normalizeSabjiString(raw: unknown, key: "sabji1" | "sabji2"): string {
+  if (raw === undefined || raw === null) return "";
+  const s = String(raw).trim();
+  if (s.length > SABJI_MAX_LEN) {
+    const err = new Error(
+      `extraItems.${key} must be at most ${SABJI_MAX_LEN} characters`
+    ) as Error & { code: string };
+    err.code = "INVALID_EXTRA";
+    throw err;
+  }
+  return s;
+}
+
+/** Empty string or one of DAL_RICE_TYPES. */
+export function normalizeDalRiceType(raw: unknown): string {
+  if (raw === undefined || raw === null || raw === "") return "";
+  const s = String(raw).trim();
+  if (s === "") return "";
+  if ((DAL_RICE_TYPES as readonly string[]).includes(s)) return s;
+  const err = new Error(
+    `extraItems.dalRiceType must be one of: ${DAL_RICE_TYPES.join(", ")}`
+  ) as Error & { code: string };
+  err.code = "INVALID_EXTRA";
+  throw err;
+}
+
+export function parseAndValidateExtraItems(
+  extraItems: ExtraItemsInput
+): ParsedExtraItems {
+  return {
+    roti: parseNonNegInt(extraItems.roti, "roti"),
+    rice: parseNonNegInt(extraItems.rice, "rice"),
+    sabji1: normalizeSabjiString(extraItems.sabji1, "sabji1"),
+    sabji2: normalizeSabjiString(extraItems.sabji2, "sabji2"),
+    dalRiceType: normalizeDalRiceType(extraItems.dalRiceType),
+  };
+}
 
 export function calculateTotal({
   thaliIds = [],
@@ -23,7 +83,7 @@ export function calculateTotal({
 }: {
   thaliIds?: number[];
   extraItems?: ExtraItemsInput;
-}): { total: number } {
+}): { total: number; parsedExtras: ParsedExtraItems } {
   let thaliPortion = 0;
   if (!Array.isArray(thaliIds)) {
     const err = new Error("thaliIds must be an array") as Error & {
@@ -44,25 +104,22 @@ export function calculateTotal({
     thaliPortion += THALI_PRICES[id] ?? 0;
   }
 
-  const keys = ["roti", "sabji", "dalRice", "rice"] as const;
-  let extrasPortion = 0;
-  for (const key of keys) {
-    const raw = extraItems[key];
-    const n = raw === undefined || raw === null ? 0 : Number(raw);
-    if (!Number.isFinite(n) || n < 0 || !Number.isInteger(n)) {
-      const err = new Error(
-        `extraItems.${key} must be a non-negative integer`
-      ) as Error & { code: string };
-      err.code = "INVALID_EXTRA";
-      throw err;
-    }
-    extrasPortion += n * (EXTRA_UNIT_PRICES[key] ?? 0);
-  }
+  const p = parseAndValidateExtraItems(extraItems);
+  const sabjiCount = (p.sabji1 ? 1 : 0) + (p.sabji2 ? 1 : 0);
+  const dalRiceCount = p.dalRiceType ? 1 : 0;
+  const extrasPortion =
+    p.roti * ROTI_PRICE +
+    p.rice * RICE_PRICE +
+    sabjiCount * SABJI_UNIT_PRICE +
+    dalRiceCount * DAL_RICE_UNIT_PRICE;
 
-  return { total: thaliPortion + extrasPortion };
+  return {
+    total: thaliPortion + extrasPortion,
+    parsedExtras: p,
+  };
 }
 
-export { THALI_PRICES, EXTRA_UNIT_PRICES };
+export { THALI_PRICES };
 
 function isPricingError(
   e: unknown
