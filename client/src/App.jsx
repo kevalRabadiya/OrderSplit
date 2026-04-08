@@ -8,6 +8,7 @@ import HistoryPage from "./pages/HistoryPage.jsx";
 import InvoicePage from "./pages/InvoicePage.jsx";
 import HousekeeperPage from "./pages/HousekeeperPage.jsx";
 import LightBillPage from "./pages/LightBillPage.jsx";
+import ServerDownPage from "./pages/ServerDownPage.jsx";
 import { useTheme } from "./theme/useTheme.js";
 import "./App.css";
 
@@ -156,6 +157,16 @@ function Layout({ children }) {
 }
 
 export default function App() {
+  const location = useLocation();
+
+  if (location.pathname === "/server-down") {
+    return (
+      <Routes>
+        <Route path="/server-down" element={<ServerDownPage />} />
+      </Routes>
+    );
+  }
+
   return (
     <Layout>
       <Routes>
@@ -167,6 +178,7 @@ export default function App() {
         <Route path="/housekeeper" element={<HousekeeperPage />} />
         <Route path="/light-bill" element={<LightBillPage />} />
         <Route path="/order" element={<OrderPage />} />
+        <Route path="/server-down" element={<ServerDownPage />} />
       </Routes>
     </Layout>
   );
