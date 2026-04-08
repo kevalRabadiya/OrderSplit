@@ -1,3 +1,5 @@
+import { formatThaliCountsLine } from "./thaliFormat.js";
+
 /**
  * Aggregate extras and thali counts for History filtered rows.
  * @param {Array<Record<string, unknown>>|null|undefined} rows
@@ -87,9 +89,5 @@ export function aggregateHistorySummary(rows) {
 
 /** @param {Map<number, number>} thaliCounts */
 export function formatThaliSummaryLine(thaliCounts) {
-  if (!thaliCounts || thaliCounts.size === 0) return "";
-  return [...thaliCounts.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .map(([id, n]) => `Thali ${id} × ${n}`)
-    .join(", ");
+  return formatThaliCountsLine(thaliCounts);
 }

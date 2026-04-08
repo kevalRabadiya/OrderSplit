@@ -79,6 +79,8 @@ Internal tool for entering daily thali orders, built with a **React (Vite)** fro
 | `PUT` | `/api/orders/:userId` | Update existing order for date using `{ thaliIds, extraItems, date? }`; returns `404` if none exists. |
 | `DELETE` | `/api/orders/:userId?date=YYYY-MM-DD` | Soft-delete order (`deletedAt` set); returns `404` if missing/already deleted and `204` on success. |
 | `GET` | `/api/orders/:userId?date=YYYY-MM-DD` | Get order for user/date (defaults to today if omitted), always returning merged `thaliIds`. |
+| `GET` | `/api/light-bill?year=YYYY` | List light-bill periods overlapping that calendar year (`fromMonthKey` / `toMonthKey` inclusive, `amount`). |
+| `PUT` | `/api/light-bill` | Upsert period `{ fromMonthKey, toMonthKey, amount }` (`YYYY-MM` keys, `from` ≤ `to`). |
 
 ## Data model and rules
 

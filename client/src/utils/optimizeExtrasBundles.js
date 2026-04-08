@@ -309,7 +309,7 @@ const THALI_PRICE_BY_ID = new Map(
 
 /**
  * @param {Map<number, number>} thaliCounts
- * @returns {string} e.g. "Thali 2 × 1 — ₹110, Thali 5 × 1 — ₹75"
+ * @returns {string} e.g. "Thali 2(rs.110) x 1, Thali 5(rs.75) x 1"
  */
 export function formatOptimizedThaliLine(thaliCounts) {
   if (!thaliCounts || thaliCounts.size === 0) return "";
@@ -317,8 +317,7 @@ export function formatOptimizedThaliLine(thaliCounts) {
     .sort((a, b) => a[0] - b[0])
     .map(([id, n]) => {
       const unit = THALI_PRICE_BY_ID.get(id) ?? 0;
-      const lineTotal = unit * n;
-      return `Thali ${id} × ${n} — ₹${lineTotal}`;
+      return `Thali ${id}(rs.${unit}) x ${n}`;
     })
     .join(", ");
 }

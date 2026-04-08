@@ -96,3 +96,18 @@ export function setHousekeeperAttendance(dateKey, present) {
     body: JSON.stringify({ present }),
   }).then(handleJson);
 }
+
+export function getLightBillsForYear(year) {
+  const y = Number(year);
+  const params = new URLSearchParams();
+  params.set("year", String(y));
+  return fetch(`${API_BASE}/api/light-bill?${params}`).then(handleJson);
+}
+
+export function saveLightBillPeriod({ fromMonthKey, toMonthKey, amount }) {
+  return fetch(`${API_BASE}/api/light-bill`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fromMonthKey, toMonthKey, amount }),
+  }).then(handleJson);
+}

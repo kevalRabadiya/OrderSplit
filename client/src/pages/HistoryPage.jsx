@@ -381,34 +381,36 @@ export default function HistoryPage() {
                     <ul className="history-summary-optimize-list">
                       {optimize.leftoverRoti > 0 ? (
                         <li>
-                          <strong>Extra roti × {optimize.leftoverRoti}</strong>{" "}
-                          <span className="muted">
-                            (₹{optimize.leftoverRoti * EXTRA_PRICES.roti})
-                          </span>
+                          <strong>
+                            Extra roti x {optimize.leftoverRoti} (₹
+                            {optimize.leftoverRoti * EXTRA_PRICES.roti})
+                          </strong>
                         </li>
                       ) : null}
                       {optimize.leftoverSabji > 0 ? (
                         <li>
-                          Extra sabji × {optimize.leftoverSabji}{" "}
-                          <span className="muted">
-                            (₹{optimize.leftoverSabji * EXTRA_PRICES.sabji})
-                          </span>
+                          <strong>
+                            Extra sabji x {optimize.leftoverSabji} (₹
+                            {optimize.leftoverSabji * EXTRA_PRICES.sabji})
+                          </strong>
                         </li>
                       ) : null}
                       {optimize.leftoverDal > 0 ? (
                         <li>
-                          Extra dal-rice × {optimize.leftoverDal}{" "}
-                          <span className="muted">
-                            (₹{optimize.leftoverDal * EXTRA_PRICES.dalRice})
-                          </span>
+                          <strong>
+                            Extra dal-rice x {optimize.leftoverDal} (₹
+                            {optimize.leftoverDal * EXTRA_PRICES.dalRice})
+                          </strong>
                         </li>
                       ) : null}
                     </ul>
                   )}
                   {optimize.riceCost > 0 ? (
                     <p className="mb-0">
-                      <strong>Rice:</strong> {summary.riceTotal} × ₹{EXTRA_PRICES.rice} = ₹
-                      {optimize.riceCost}
+                      <strong>
+                        Rice: {summary.riceTotal} x ₹{EXTRA_PRICES.rice} = ₹
+                        {optimize.riceCost}
+                      </strong>
                     </p>
                   ) : null}
                   <p className="history-summary-optimize-total mb-0">
