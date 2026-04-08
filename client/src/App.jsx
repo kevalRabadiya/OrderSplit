@@ -1,4 +1,5 @@
-import { Link, NavLink, Route, Routes } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import UsersPage from "./pages/UsersPage.jsx";
 import AddUserPage from "./pages/AddUserPage.jsx";
@@ -65,6 +66,69 @@ function ThemeToggle() {
   );
 }
 
+function UtilitiesMenu() {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const location = useLocation();
+  const utilitiesActive =
+    location.pathname.startsWith("/housekeeper") ||
+    location.pathname.startsWith("/light-bill");
+
+  useEffect(() => {
+    function onDocClick(e) {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    function onKeyDown(e) {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, []);
+
+  return (
+    <div className="nav-dropdown" ref={menuRef}>
+      <button
+        type="button"
+        className={`nav-dropdown-trigger ${open || utilitiesActive ? "active" : ""}`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        Utilities
+      </button>
+      {open ? (
+        <div className="nav-dropdown-menu" role="menu" aria-label="Utilities">
+          <NavLink
+            to="/housekeeper"
+            className="nav-dropdown-item"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            HouseKeeper
+          </NavLink>
+          <NavLink
+            to="/light-bill"
+            className="nav-dropdown-item"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            Light bill
+          </NavLink>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function Layout({ children }) {
   return (
     <div className="app">
@@ -79,9 +143,8 @@ function Layout({ children }) {
             </NavLink>
             <NavLink to="/order">Order</NavLink>
             <NavLink to="/history">History</NavLink>
+            <UtilitiesMenu />
             <NavLink to="/invoice">Invoice</NavLink>
-            <NavLink to="/housekeeper">HouseKeeper</NavLink>
-            <NavLink to="/light-bill">Light bill</NavLink>
             <NavLink to="/users">Users</NavLink>
           </nav>
           <ThemeToggle />

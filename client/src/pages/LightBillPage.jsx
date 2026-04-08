@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getLightBillsForYear, saveLightBillPeriod } from "../api";
+import { getLightBillsForYear, getUsers, saveLightBillPeriod } from "../api";
 import Loader from "../components/Loader.jsx";
 
 function defaultFromToMonth() {
@@ -26,6 +26,12 @@ function monthHumanLabel(ym) {
   });
 }
 
+function periodLabel(fromMonthKey, toMonthKey) {
+  if (!fromMonthKey || !toMonthKey) return "—";
+  if (fromMonthKey === toMonthKey) return monthHumanLabel(fromMonthKey);
+  return `${monthHumanLabel(fromMonthKey)} – ${monthHumanLabel(toMonthKey)}`;
+}
+
 function mergeBillRows(rowsA, rowsB) {
   const map = new Map();
   for (const r of [...(rowsA || []), ...(rowsB || [])]) {
@@ -48,6 +54,8 @@ export default function LightBillPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [saveOk, setSaveOk] = useState(false);
+  const [mergedRows, setMergedRows] = useState([]);
+  const [userCount, setUserCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +76,7 @@ export default function LightBillPage() {
           Array.isArray(rows1) ? rows1 : [],
           Array.isArray(rows2) ? rows2 : []
         );
+        setMergedRows(merged);
         const row = merged.find(
           (r) =>
             r.fromMonthKey === fromMonthKey && r.toMonthKey === toMonthKey
@@ -80,6 +89,7 @@ export default function LightBillPage() {
         if (!cancelled) {
           setError(e.message || "Failed to load light bill.");
           setAmount("");
+          setMergedRows([]);
         }
       })
       .finally(() => {
@@ -89,6 +99,30 @@ export default function LightBillPage() {
       cancelled = true;
     };
   }, [fromMonthKey, toMonthKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getUsers()
+      .then((list) => {
+        if (!cancelled) {
+          setUserCount(Array.isArray(list) ? list.length : 0);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setUserCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const recentRows = [...mergedRows]
+    .sort((a, b) => {
+      const aTs = String(a?.updatedAt ?? a?.createdAt ?? "");
+      const bTs = String(b?.updatedAt ?? b?.createdAt ?? "");
+      return bTs.localeCompare(aTs);
+    })
+    .slice(0, 4);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -140,57 +174,94 @@ export default function LightBillPage() {
           <Loader label="Loading…" />
         </div>
       ) : (
-        <form className="form card-elevated" onSubmit={onSubmit}>
-          <h2 className="form-section-title mb-0">Billing period</h2>
-          <p className="small muted mb-0">
-            {monthHumanLabel(fromMonthKey)} – {monthHumanLabel(toMonthKey)}
-          </p>
-          <div className="light-bill-period-grid">
-            <label>
-              <span className="light-bill-field-hint muted">From</span>
-              <input
-                type="month"
-                value={fromMonthKey}
-                onChange={(e) => setFromMonthKey(e.target.value)}
-              />
-            </label>
-            <label>
-              <span className="light-bill-field-hint muted">To</span>
-              <input
-                type="month"
-                value={toMonthKey}
-                onChange={(e) => setToMonthKey(e.target.value)}
-              />
-            </label>
-          </div>
-          <label>
-            Amount (₹)
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              inputMode="decimal"
-            />
-          </label>
-          {error ? (
-            <div className="banner banner--error" role="alert">
-              {error}
-            </div>
-          ) : null}
-          {saveOk ? (
-            <p className="small muted mb-0" role="status">
-              Saved.
+        <>
+          <form className="form card-elevated" onSubmit={onSubmit}>
+            <h2 className="form-section-title mb-0">Billing period</h2>
+            <p className="small muted mb-0">
+              {periodLabel(fromMonthKey, toMonthKey)}
             </p>
-          ) : null}
-          <div className="form-actions">
-            <button type="submit" className="btn primary" disabled={saving}>
-              {saving ? "Saving…" : "Save"}
-            </button>
-          </div>
-        </form>
+            <div className="light-bill-period-grid">
+              <label>
+                <span className="light-bill-field-hint muted">From</span>
+                <input
+                  type="month"
+                  value={fromMonthKey}
+                  onChange={(e) => setFromMonthKey(e.target.value)}
+                />
+              </label>
+              <label>
+                <span className="light-bill-field-hint muted">To</span>
+                <input
+                  type="month"
+                  value={toMonthKey}
+                  onChange={(e) => setToMonthKey(e.target.value)}
+                />
+              </label>
+            </div>
+            <label>
+              Amount (₹)
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0"
+                inputMode="decimal"
+              />
+            </label>
+            {error ? (
+              <div className="banner banner--error" role="alert">
+                {error}
+              </div>
+            ) : null}
+            {saveOk ? (
+              <p className="small muted mb-0" role="status">
+                Saved.
+              </p>
+            ) : null}
+            <div className="form-actions">
+              <button type="submit" className="btn primary" disabled={saving}>
+                {saving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </form>
+
+          <section className="card-elevated light-bill-history">
+            <div className="light-bill-history-head">
+              <h2 className="form-section-title mb-0">Recent light bill history</h2>
+              <span className="small muted">Last 4</span>
+            </div>
+            {recentRows.length === 0 ? (
+              <p className="muted mb-0">No light bill history yet.</p>
+            ) : (
+              <ul className="light-bill-history-list">
+                {recentRows.map((row, idx) => (
+                  <li
+                    key={`${row.fromMonthKey}-${row.toMonthKey}-${idx}`}
+                    className="light-bill-history-item"
+                  >
+                    <div className="light-bill-history-main">
+                      <span className="light-bill-history-period">
+                        {periodLabel(row.fromMonthKey, row.toMonthKey)}
+                      </span>
+                      <span className="small muted">
+                        Split ({userCount || 0} user
+                        {userCount === 1 ? "" : "s"}): ₹
+                        {userCount > 0
+                          ? (Number(row.amount) / userCount).toFixed(2)
+                          : "0.00"}
+                      </span>
+                    </div>
+                    <strong className="light-bill-history-amount">
+                      ₹{Number(row.amount) || 0}
+                    </strong>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </>
       )}
     </div>
   );

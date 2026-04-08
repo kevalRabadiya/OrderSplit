@@ -70,6 +70,7 @@ export default function OrderPage() {
   const [sabji2, setSabji2] = useState("");
   const [dalRiceType, setDalRiceType] = useState("");
   const [rice, setRice] = useState(0);
+  const [description, setDescription] = useState("");
   const [orderDate, setOrderDate] = useState(todayISO);
 
   useEffect(() => {
@@ -118,8 +119,9 @@ export default function OrderPage() {
     () => ({
       thaliIds,
       extraItems,
+      description: description.trim(),
     }),
-    [thaliIds, extraItems]
+    [thaliIds, extraItems, description]
   );
 
   const payloadRef = useRef(payloadBase);
@@ -218,6 +220,9 @@ export default function OrderPage() {
       drt === "Pulav" || drt === "Khichdi" || drt === "Dalrice" ? drt : ""
     );
     setRice(order.extraItems?.rice ?? 0);
+    setDescription(
+      typeof order.description === "string" ? order.description : ""
+    );
     setPreviewTotal(order.totalAmount ?? null);
     setHasSavedOrder(true);
   }, []);
@@ -243,6 +248,7 @@ export default function OrderPage() {
           setSabji2("");
           setDalRiceType("");
           setRice(0);
+          setDescription("");
           setPreviewTotal(null);
           setHasSavedOrder(false);
           return;
@@ -364,6 +370,7 @@ export default function OrderPage() {
       setSabji2("");
       setDalRiceType("");
       setRice(0);
+      setDescription("");
       setPreviewTotal(null);
       setHasSavedOrder(false);
       setSavedMessage("Order deleted.");
@@ -573,6 +580,24 @@ export default function OrderPage() {
             </label>
           </div>
         </fieldset>
+
+        <section className="form-section">
+          <h2 className="form-section-title">Description</h2>
+          <label>
+            Order note (optional)
+            <textarea
+              className="order-note-input"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Add any delivery/kitchen note for this order"
+              maxLength={400}
+              rows={3}
+            />
+            <span className="small muted">
+              {description.length}/400
+            </span>
+          </label>
+        </section>
 
         {(actionError || savedMessage) && (
           <div

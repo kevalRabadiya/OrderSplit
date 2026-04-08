@@ -83,6 +83,8 @@ function todayDateKey() {
 }
 
 function orderPayloadFromBody(body: OrderBody) {
+  const description =
+    body.description != null ? String(body.description).trim() : "";
   const thaliIds = normalizeThaliIds(body);
   const extraItems = normalizeExtraItems(body);
   const dateKey = body.date
@@ -109,7 +111,7 @@ function orderPayloadFromBody(body: OrderBody) {
     sabji: 0,
     dalRice: 0,
   };
-  return { dateKey, thaliIds, extraItems: extraItemsDoc, total };
+  return { dateKey, thaliIds, extraItems: extraItemsDoc, total, description };
 }
 
 function resolveDateKeyFromQuery(query: Record<string, unknown>) {
@@ -138,6 +140,7 @@ function buildOrderUpdate(
       userId,
       dateKey: payload.dateKey,
       thaliIds: payload.thaliIds,
+      description: payload.description,
       extraItems: payload.extraItems,
       totalAmount: payload.total,
       createdAt: new Date(),

@@ -37,6 +37,7 @@ const orderSchema = new mongoose.Schema(
       type: [Number],
       default: [],
     },
+    description: { type: String, default: "" },
     extraItems: { type: extraItemsSchema, default: () => ({}) },
     totalAmount: { type: Number, required: true, min: 0 },
     createdAt: { type: Date, default: Date.now },

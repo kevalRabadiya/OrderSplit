@@ -29,6 +29,7 @@ export default function HistoryPage() {
   const [filterUserId, setFilterUserId] = useState("");
   const [users, setUsers] = useState([]);
   const [rows, setRows] = useState([]);
+  const [descriptionModal, setDescriptionModal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -103,6 +104,17 @@ export default function HistoryPage() {
     setDateTo(t);
     setFilterUserId("");
   }
+
+  useEffect(() => {
+    if (!descriptionModal) return undefined;
+    function onKeyDown(e) {
+      if (e.key === "Escape") {
+        setDescriptionModal(null);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [descriptionModal]);
 
   return (
     <div className="page page--wide">
@@ -194,6 +206,7 @@ export default function HistoryPage() {
                     <th>User</th>
                     <th>Thali (qty)</th>
                     <th>Extras</th>
+                    <th>Description</th>
                     <th className="history-col-total">Total</th>
                   </tr>
                 </thead>
@@ -225,6 +238,31 @@ export default function HistoryPage() {
                       </td>
                       <td className="history-cell-extras">
                         {formatOrderExtras(row.extraItems)}
+                      </td>
+                      <td>
+                        {typeof row.description === "string" &&
+                        row.description.trim() !== "" ? (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-ghost history-desc-btn"
+                            aria-label="Show description"
+                            title="Show description"
+                            onClick={() => {
+                              setDescriptionModal({
+                                dateKey: row.dateKey,
+                                userName: row.user?.name || "User",
+                                userPhone: row.user?.phone || "",
+                                description: row.description,
+                              });
+                            }}
+                          >
+                            <span className="history-desc-icon" aria-hidden="true">
+                              i
+                            </span>
+                          </button>
+                        ) : (
+                          <span className="muted">—</span>
+                        )}
                       </td>
                       <td className="history-col-total">
                         <strong>₹{row.totalAmount}</strong>
@@ -427,6 +465,47 @@ export default function HistoryPage() {
                 </div>
               )}
             </aside>
+          </div>
+        </div>
+      ) : null}
+      {descriptionModal ? (
+        <div
+          className="history-desc-modal-backdrop"
+          role="presentation"
+          onClick={() => setDescriptionModal(null)}
+        >
+          <div
+            className="history-desc-modal card-elevated"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Order description"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="history-desc-modal-head">
+              <div className="history-desc-modal-meta">
+                <p className="eyebrow mb-0">Order Note</p>
+                <h3 className="form-section-title mb-0">Description</h3>
+                <p className="small muted mb-0 history-desc-modal-sub">
+                  {descriptionModal.userName}
+                  {descriptionModal.userPhone
+                    ? ` (${descriptionModal.userPhone})`
+                    : ""}{" "}
+                  · {formatDateDDMMYYYY(descriptionModal.dateKey)}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-sm btn-ghost history-desc-close-btn"
+                onClick={() => setDescriptionModal(null)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="history-desc-modal-body-wrap">
+              <p className="history-desc-modal-body mb-0">
+                {descriptionModal.description}
+              </p>
+            </div>
           </div>
         </div>
       ) : null}
