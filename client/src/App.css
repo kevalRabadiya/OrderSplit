@@ -750,6 +750,33 @@
   grid-column: 1 / -1;
 }
 
+/* Light bill page — From / To (not under .history-filters; avoid 3-col history breakpoint) */
+.light-bill-period-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+  align-items: start;
+  width: 100%;
+}
+
+.light-bill-period-grid > label {
+  min-width: 0;
+}
+
+.light-bill-field-hint {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.light-bill-period-grid input[type="month"] {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 @media (min-width: 640px) {
   .history-filter-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(16rem, 2fr);
@@ -1228,6 +1255,40 @@
   min-height: 260px;
 }
 
+.home-chart-candle-legend {
+  max-width: 36rem;
+  line-height: 1.35;
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.daily-candlestick-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 260px;
+}
+
+.daily-candlestick-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.daily-candlestick-tooltip {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.daily-candlestick-tooltip-date {
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+  color: var(--text-h);
+}
+
 .home-chart-empty {
   display: flex;
   align-items: center;
@@ -1530,6 +1591,10 @@
 
   .history-filters {
     max-width: none;
+  }
+
+  .light-bill-period-grid {
+    grid-template-columns: 1fr;
   }
 
   .history-filter-grid {

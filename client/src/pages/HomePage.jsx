@@ -9,9 +9,11 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import DailyExpenseCandlestick from "../components/DailyExpenseCandlestick.jsx";
 import Loader from "../components/Loader.jsx";
 import {
   getHousekeeperAttendance,
+  getLightBillsForYear,
   getOrdersHistory,
   getUsers,
 } from "../api";
@@ -85,6 +87,32 @@ function eachDateKeyInRange(from, to) {
   return keys;
 }
 
+/** @param {string} ym `YYYY-MM` */
+function shortMonthNameEnIn(ym) {
+  const [ys, ms] = ym.split("-");
+  const y = Number(ys);
+  const m = Number(ms);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) return ym;
+  return new Date(y, m - 1, 1).toLocaleString("en-IN", { month: "short" });
+}
+
+/** e.g. Jan–Feb, or Dec '25–Jan '26 when crossing years */
+function formatLightBillPeriodLabel(fromM, toM) {
+  if (fromM === toM) return shortMonthNameEnIn(fromM);
+  const [fy] = fromM.split("-").map(Number);
+  const [ty] = toM.split("-").map(Number);
+  const a = shortMonthNameEnIn(fromM);
+  const b = shortMonthNameEnIn(toM);
+  if (fy === ty) return `${a}–${b}`;
+  return `${a} '${String(fy).slice(2)}–${b} '${String(ty).slice(2)}`;
+}
+
+function lightBillPeriodOverlapsYear(fromM, toM, year) {
+  const yStart = `${year}-01`;
+  const yEnd = `${year}-12`;
+  return fromM <= yEnd && toM >= yStart;
+}
+
 function aggregateMonthOrders(orders, from, to) {
   let totalAmount = 0;
   const byDay = new Map();
@@ -146,8 +174,8 @@ function buildDailyOptimizationChart(dayMap, from, to) {
     return {
       dateKey,
       day: dom,
+      currentTotal: m ? m.currentTotal : 0,
       optimizedTotal: m ? m.optimizedTotal : 0,
-      thaliSubtotal: m ? m.thaliSubtotal : 0,
     };
   });
 }
@@ -185,6 +213,7 @@ export default function HomePage() {
   const [monthOrders, setMonthOrders] = useState([]);
   const [housekeeperRows, setHousekeeperRows] = useState([]);
   const [housekeeperYearRows, setHousekeeperYearRows] = useState([]);
+  const [lightBillYearRows, setLightBillYearRows] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -211,22 +240,33 @@ export default function HomePage() {
     [dailyOptimization, range.from, range.to]
   );
 
-  const dailyChartOptimized = useMemo(() => {
-    const amountByDate = new Map(
-      [...dailyOptimization.entries()].map(([k, v]) => [k, v.optimizedTotal])
-    );
+  const dailyCandlestickData = useMemo(() => {
+    const rangeKeys = eachDateKeyInRange(range.from, range.to);
     const ordersByDate = new Map(
       stats.dailyChart.map((d) => [d.dateKey, Number(d.orders) || 0])
     );
-    return eachDateKeyInRange(range.from, range.to).map((dateKey) => {
+    return rangeKeys.reduce((rows, dateKey) => {
+      const m = dailyOptimization.get(dateKey);
+      const opt = m?.optimizedTotal ?? 0;
+      const cur = m?.currentTotal ?? 0;
+      const prevClose = rows.length ? rows[rows.length - 1].close : 0;
+      const open = prevClose;
+      const close = opt;
+      const high = Math.max(open, close, cur);
+      const low = Math.min(open, close, cur);
       const dom = Number(dateKey.slice(8, 10));
-      return {
+      rows.push({
         dateKey,
         day: dom,
-        amount: amountByDate.get(dateKey) ?? 0,
+        open,
+        high: Math.max(high, low),
+        low,
+        close,
+        currentTotal: cur,
         orders: ordersByDate.get(dateKey) ?? 0,
-      };
-    });
+      });
+      return rows;
+    }, []);
   }, [dailyOptimization, range.from, range.to, stats.dailyChart]);
 
   const optimizedMonthTotal = useMemo(() => {
@@ -269,6 +309,28 @@ export default function HomePage() {
     return out;
   }, [housekeeperRate, housekeeperYearRows, today]);
 
+  const lightBillPeriodChartData = useMemo(() => {
+    const year = Number(today.slice(0, 4));
+    const out = [];
+    for (const row of lightBillYearRows) {
+      const fromM = row?.fromMonthKey;
+      const toM = row?.toMonthKey;
+      if (typeof fromM !== "string" || typeof toM !== "string") continue;
+      if (fromM > toM) continue;
+      if (!lightBillPeriodOverlapsYear(fromM, toM, year)) continue;
+      const amt = Number(row.amount);
+      if (!Number.isFinite(amt)) continue;
+      out.push({
+        periodKey: `${fromM}|${toM}`,
+        periodLabel: formatLightBillPeriodLabel(fromM, toM),
+        rangeLabel: `${fromM} – ${toM}`,
+        amount: amt,
+      });
+    }
+    out.sort((a, b) => a.periodKey.localeCompare(b.periodKey));
+    return out;
+  }, [lightBillYearRows, today]);
+
   const topOptimizedUsers = useMemo(() => {
     const totals = new Map();
     for (const dateKey of eachDateKeyInRange(range.from, range.to)) {
@@ -307,8 +369,17 @@ export default function HomePage() {
         getHousekeeperAttendance({ from: range.from, to: range.to }),
         getHousekeeperAttendance({ from: currentYearFrom, to: today }),
         getOrdersHistory({ from: lookbackFrom, to: today }),
+        getLightBillsForYear(Number(today.slice(0, 4))).catch(() => []),
       ])
-        .then(([userList, monthRows, housekeeperList, housekeeperYearList, recentRows]) => {
+        .then(
+          ([
+            userList,
+            monthRows,
+            housekeeperList,
+            housekeeperYearList,
+            recentRows,
+            lightRows,
+          ]) => {
           if (cancelled) return;
           setError(null);
           setUsers(Array.isArray(userList) ? userList : []);
@@ -317,9 +388,11 @@ export default function HomePage() {
           setHousekeeperYearRows(
             Array.isArray(housekeeperYearList) ? housekeeperYearList : []
           );
+          setLightBillYearRows(Array.isArray(lightRows) ? lightRows : []);
           const sorted = Array.isArray(recentRows) ? recentRows : [];
           setRecentOrders(sorted.slice(0, 4));
-        })
+        }
+        )
         .catch((e) => {
           if (!cancelled) {
             setError(e.message);
@@ -327,6 +400,7 @@ export default function HomePage() {
             setMonthOrders([]);
             setHousekeeperRows([]);
             setHousekeeperYearRows([]);
+            setLightBillYearRows([]);
             setRecentOrders([]);
           }
         })
@@ -438,56 +512,21 @@ export default function HomePage() {
           <h2 className="form-section-title home-chart-title">
             Daily expence ({monthHumanLabel(chartMonth)})
           </h2>
+          <p className="small muted home-chart-candle-legend mb-0">
+            Candlesticks: open/close = optimized total vs previous day; wicks
+            include actual order totals.
+          </p>
           <div className="home-chart-inner">
             {stats.orderCount === 0 ? (
               <p className="muted mb-0 home-chart-empty">
                 No orders in {monthHumanLabel(chartMonth)}.
               </p>
             ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart
-                  data={dailyChartOptimized}
-                  margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke={chartColors.grid}
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="day"
-                    tick={{ fill: chartColors.text, fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartColors.border }}
-                  />
-                  <YAxis
-                    tick={{ fill: chartColors.text, fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartColors.border }}
-                    width={40}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--bg-elevated)",
-                      border: `1px solid ${chartColors.border}`,
-                      borderRadius: "var(--radius-sm)",
-                      color: "var(--text-h)",
-                    }}
-                    formatter={(value) => [`₹${value}`, "Expence"]}
-                    labelFormatter={(_, payload) =>
-                      payload?.[0]?.payload?.dateKey
-                        ? formatDateDDMMYYYY(payload[0].payload.dateKey)
-                        : ""
-                    }
-                  />
-                  <Bar
-                    dataKey="amount"
-                    fill={chartColors.accent}
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={28}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              <DailyExpenseCandlestick
+                data={dailyCandlestickData}
+                chartColors={chartColors}
+                formatDateLabel={formatDateDDMMYYYY}
+              />
             )}
           </div>
         </div>
@@ -552,7 +591,7 @@ export default function HomePage() {
       <div className="home-charts-row">
         <div className="card-elevated home-chart-card home-chart-card--span2">
           <h2 className="form-section-title home-chart-title">
-            Thali/Tiffin bundles subtotal vs optimized total ({monthHumanLabel(chartMonth)})
+            Optimized total vs current total ({monthHumanLabel(chartMonth)})
           </h2>
           <div className="home-chart-inner">
             {stats.orderCount === 0 ? (
@@ -560,61 +599,68 @@ export default function HomePage() {
                 No orders in {monthHumanLabel(chartMonth)}.
               </p>
             ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart
-                  data={dailyOptimizationChart}
-                  margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke={chartColors.grid}
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="day"
-                    tick={{ fill: chartColors.text, fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartColors.border }}
-                  />
-                  <YAxis
-                    tick={{ fill: chartColors.text, fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartColors.border }}
-                    width={40}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--bg-elevated)",
-                      border: `1px solid ${chartColors.border}`,
-                      borderRadius: "var(--radius-sm)",
-                      color: "var(--text-h)",
-                    }}
-                    formatter={(value, name) => [
-                      `₹${value}`,
-                      name === "thaliSubtotal"
-                        ? "Thali subtotal"
-                        : "Optimized total",
-                    ]}
-                    labelFormatter={(_, payload) =>
-                      payload?.[0]?.payload?.dateKey
-                        ? formatDateDDMMYYYY(payload[0].payload.dateKey)
-                        : ""
-                    }
-                  />
-                  <Bar
-                    dataKey="thaliSubtotal"
-                    fill="color-mix(in srgb, var(--accent) 55%, #ffffff)"
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={24}
-                  />
-                  <Bar
-                    dataKey="optimizedTotal"
-                    fill={chartColors.accent}
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={24}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              <>
+                <p className="small muted mb-2 home-chart-range-totals">
+                  Current total in this range: ₹{stats.totalAmount}
+                  <br />
+                  Optimized total in this range: ₹{optimizedMonthTotal}
+                </p>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart
+                    data={dailyOptimizationChart}
+                    margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke={chartColors.grid}
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="day"
+                      tick={{ fill: chartColors.text, fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={{ stroke: chartColors.border }}
+                    />
+                    <YAxis
+                      tick={{ fill: chartColors.text, fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={{ stroke: chartColors.border }}
+                      width={40}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--bg-elevated)",
+                        border: `1px solid ${chartColors.border}`,
+                        borderRadius: "var(--radius-sm)",
+                        color: "var(--text-h)",
+                      }}
+                      formatter={(value, name) => [
+                        `₹${value}`,
+                        name === "currentTotal"
+                          ? "Current total"
+                          : "Optimized total",
+                      ]}
+                      labelFormatter={(_, payload) =>
+                        payload?.[0]?.payload?.dateKey
+                          ? formatDateDDMMYYYY(payload[0].payload.dateKey)
+                          : ""
+                      }
+                    />
+                    <Bar
+                      dataKey="currentTotal"
+                      fill="color-mix(in srgb, var(--accent) 55%, #ffffff)"
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={24}
+                    />
+                    <Bar
+                      dataKey="optimizedTotal"
+                      fill={chartColors.accent}
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={24}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </>
             )}
           </div>
         </div>
@@ -670,6 +716,73 @@ export default function HomePage() {
                 </BarChart>
               </ResponsiveContainer>
             )}
+          </div>
+        </div>
+      </div>
+
+      <div className="home-charts-row">
+        <div className="card-elevated home-chart-card home-chart-card--span2">
+          <h2 className="form-section-title home-chart-title">
+            Light bill (current year)
+          </h2>
+          <div className="home-chart-inner">
+            {lightBillPeriodChartData.length === 0 ? (
+              <p className="muted mb-0 home-chart-empty">No data.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart
+                  data={lightBillPeriodChartData}
+                  margin={{ top: 8, right: 8, left: 0, bottom: 8 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={chartColors.grid}
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="periodLabel"
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartColors.border }}
+                    interval={0}
+                    angle={-28}
+                    textAnchor="end"
+                    height={56}
+                  />
+                  <YAxis
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartColors.border }}
+                    width={40}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--bg-elevated)",
+                      border: `1px solid ${chartColors.border}`,
+                      borderRadius: "var(--radius-sm)",
+                      color: "var(--text-h)",
+                    }}
+                    formatter={(value) => [`₹${value}`, "Light bill"]}
+                    labelFormatter={(_, payload) => {
+                      const p = payload?.[0]?.payload;
+                      if (!p?.rangeLabel) return "";
+                      return `${p.periodLabel} (${p.rangeLabel})`;
+                    }}
+                  />
+                  <Bar
+                    dataKey="amount"
+                    fill={chartColors.accent}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={36}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+            <p className="small muted mb-0 mt-2">
+              <Link to="/light-bill" className="home-section-link">
+                Enter or edit amounts →
+              </Link>
+            </p>
           </div>
         </div>
       </div>

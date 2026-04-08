@@ -4,7 +4,6 @@ import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatThaliQuantities } from "../utils/thaliFormat.js";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
-import { formatOrderExtras } from "../utils/formatOrderExtras.js";
 import { aggregateHistorySummary, formatThaliSummaryLine } from "../utils/aggregateHistorySummary.js";
 import { computeEqualSplitByDay } from "../utils/dailyOptimization.js";
 
