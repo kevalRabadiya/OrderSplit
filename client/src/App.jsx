@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import UsersPage from "./pages/UsersPage.jsx";
 import AddUserPage from "./pages/AddUserPage.jsx";
@@ -9,6 +16,11 @@ import InvoicePage from "./pages/InvoicePage.jsx";
 import HousekeeperPage from "./pages/HousekeeperPage.jsx";
 import LightBillPage from "./pages/LightBillPage.jsx";
 import ServerDownPage from "./pages/ServerDownPage.jsx";
+import {
+  API_DOWN_EVENT,
+  SERVER_DOWN_PATH,
+  isServerMarkedDown,
+} from "./api.js";
 import { useTheme } from "./theme/useTheme.js";
 import "./App.css";
 
@@ -158,11 +170,26 @@ function Layout({ children }) {
 
 export default function App() {
   const location = useLocation();
+  const navigate = useNavigate();
 
-  if (location.pathname === "/server-down") {
+  useEffect(() => {
+    function goServerDown() {
+      if (location.pathname === SERVER_DOWN_PATH) return;
+      navigate(SERVER_DOWN_PATH, { replace: true });
+    }
+
+    if (isServerMarkedDown()) {
+      goServerDown();
+    }
+
+    window.addEventListener(API_DOWN_EVENT, goServerDown);
+    return () => window.removeEventListener(API_DOWN_EVENT, goServerDown);
+  }, [location.pathname, navigate]);
+
+  if (location.pathname === SERVER_DOWN_PATH) {
     return (
       <Routes>
-        <Route path="/server-down" element={<ServerDownPage />} />
+        <Route path={SERVER_DOWN_PATH} element={<ServerDownPage />} />
       </Routes>
     );
   }
@@ -178,7 +205,7 @@ export default function App() {
         <Route path="/housekeeper" element={<HousekeeperPage />} />
         <Route path="/light-bill" element={<LightBillPage />} />
         <Route path="/order" element={<OrderPage />} />
-        <Route path="/server-down" element={<ServerDownPage />} />
+        <Route path={SERVER_DOWN_PATH} element={<ServerDownPage />} />
       </Routes>
     </Layout>
   );

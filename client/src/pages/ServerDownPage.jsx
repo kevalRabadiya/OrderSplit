@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getServerHealth } from "../api.js";
+import { clearServerDownMark, getServerHealth } from "../api.js";
 
 export default function ServerDownPage() {
   const navigate = useNavigate();
@@ -12,6 +12,7 @@ export default function ServerDownPage() {
     setMessage("");
     try {
       await getServerHealth();
+      clearServerDownMark();
       navigate("/", { replace: true });
     } catch {
       setMessage("Still unavailable. Please try again in a few seconds.");

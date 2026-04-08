@@ -1,14 +1,34 @@
 const API_BASE =
   import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:5000";
 const SERVER_DOWN_PATH = "/server-down";
-let isRedirectingToServerDown = false;
+const API_DOWN_EVENT = "api:server-down";
+const API_RECOVERED_EVENT = "api:server-recovered";
+const SERVER_DOWN_FLAG_KEY = "api_server_down";
+let hasSignaledServerDown = false;
 
-function redirectToServerDown() {
+function dispatchWindowEvent(name) {
   if (typeof window === "undefined") return;
-  if (window.location.pathname === SERVER_DOWN_PATH) return;
-  if (isRedirectingToServerDown) return;
-  isRedirectingToServerDown = true;
-  window.location.assign(SERVER_DOWN_PATH);
+  window.dispatchEvent(new CustomEvent(name));
+}
+
+function markServerDown() {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(SERVER_DOWN_FLAG_KEY, "1");
+  if (hasSignaledServerDown) return;
+  hasSignaledServerDown = true;
+  dispatchWindowEvent(API_DOWN_EVENT);
+}
+
+export function isServerMarkedDown() {
+  if (typeof window === "undefined") return false;
+  return sessionStorage.getItem(SERVER_DOWN_FLAG_KEY) === "1";
+}
+
+export function clearServerDownMark() {
+  if (typeof window === "undefined") return;
+  hasSignaledServerDown = false;
+  sessionStorage.removeItem(SERVER_DOWN_FLAG_KEY);
+  dispatchWindowEvent(API_RECOVERED_EVENT);
 }
 
 function isServerUnavailableStatus(status) {
@@ -38,12 +58,12 @@ async function request(path, options) {
   try {
     const res = await fetch(`${API_BASE}${path}`, options);
     if (isServerUnavailableStatus(res.status)) {
-      redirectToServerDown();
+      markServerDown();
     }
     return await handleJson(res);
   } catch (err) {
     if (err instanceof TypeError) {
-      redirectToServerDown();
+      markServerDown();
     }
     throw err;
   }
@@ -140,3 +160,5 @@ export function saveLightBillPeriod({ fromMonthKey, toMonthKey, amount }) {
 export function getServerHealth() {
   return request("/health");
 }
+
+export { API_DOWN_EVENT, API_RECOVERED_EVENT, SERVER_DOWN_PATH };
