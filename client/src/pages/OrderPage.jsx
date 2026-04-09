@@ -397,8 +397,8 @@ export default function OrderPage() {
   const actionsDisabled = busy || loadingOrder;
 
   return (
-    <div className="page page--wide">
-      <div className="page-head">
+    <div className="page page--wide order-page">
+      <div className="page-head order-page-head glass-hero">
         <div>
           <p className="eyebrow">Kitchen</p>
           <h1>Build an order</h1>
@@ -419,8 +419,8 @@ export default function OrderPage() {
       ) : null}
 
       {!loadingUsers ? (
-      <form className="form order-form card-elevated" onSubmit={onCalculate}>
-        <section className="form-section">
+      <form className="form order-form order-form--enhanced card-elevated glass-surface" onSubmit={onCalculate}>
+        <section className="form-section order-section order-section--meta glass-surface">
           <h2 className="form-section-title">Who &amp; when</h2>
           <div className="grid-2">
             <label>
@@ -461,7 +461,7 @@ export default function OrderPage() {
           ) : null}
         </section>
 
-        <section className="form-section">
+        <section className="form-section order-section order-section--thali glass-surface">
           <div className="form-section-head">
             <h2 className="form-section-title">Thalis</h2>
             <button
@@ -484,9 +484,9 @@ export default function OrderPage() {
               </p>
             </div>
           ) : (
-            <ul className="thali-row-list">
+            <ul className="thali-row-list order-thali-list">
               {thaliRows.map((row, index) => (
-                <li key={row.rowId} className="thali-row">
+                <li key={row.rowId} className="thali-row order-thali-row">
                   <span className="thali-row-index" aria-hidden="true">
                     {index + 1}
                   </span>
@@ -505,7 +505,7 @@ export default function OrderPage() {
                   </select>
                   <button
                     type="button"
-                    className="btn btn-sm btn-icon"
+                    className="btn btn-sm btn-icon order-thali-remove"
                     onClick={() => removeThaliRow(row.rowId)}
                     aria-label={`Remove thali ${index + 1}`}
                   >
@@ -517,7 +517,7 @@ export default function OrderPage() {
           )}
         </section>
 
-        <fieldset className="form-section extras">
+        <fieldset className="form-section extras order-section order-section--extras glass-surface">
           <legend className="form-section-title">Extra items</legend>
           <p className="hint muted mb-0">
             Each filled sabji name adds ₹40. One dal-rice choice adds ₹40.
@@ -581,7 +581,7 @@ export default function OrderPage() {
           </div>
         </fieldset>
 
-        <section className="form-section">
+        <section className="form-section order-section order-section--note glass-surface">
           <h2 className="form-section-title">Description</h2>
           <label>
             Order note (optional)
@@ -608,7 +608,7 @@ export default function OrderPage() {
           </div>
         )}
 
-        <div className="total-block" aria-live="polite">
+        <div className="total-block order-total-block glass-surface" aria-live="polite">
           {previewTotal != null ? (
             <>
               <span className="total-label">Total</span>
@@ -619,7 +619,7 @@ export default function OrderPage() {
           )}
         </div>
 
-        <div className="actions">
+        <div className="actions order-actions">
           <button
             type="submit"
             className="btn primary"

@@ -176,14 +176,19 @@ export default function InvoicePage() {
     [rows]
   );
 
+  const displayedGrandTotal = useMemo(() => {
+    if (!grouped.length) return 0;
+    return grouped.reduce((s, g) => s + (Number(g.subtotal) || 0), 0);
+  }, [grouped]);
+
   const optimizedGrandTotal = useMemo(() => {
     if (!grouped.length) return 0;
     return grouped.reduce((s, g) => s + (Number(g.optimizedSubtotal) || 0), 0);
   }, [grouped]);
 
   return (
-    <div className="page page--wide">
-      <div className="page-head">
+    <div className="page page--wide invoice-page">
+      <div className="page-head invoice-page-head glass-hero">
         <div>
           <p className="eyebrow">Billing</p>
           <h1>Invoice</h1>
@@ -197,7 +202,7 @@ export default function InvoicePage() {
         </Link>
       </div>
 
-      <div className="card-elevated invoice-toolbar">
+      <div className="card-elevated invoice-toolbar glass-surface">
         <label className="invoice-month-label">
           <span className="form-section-title invoice-month-title">Month</span>
           <input
@@ -240,7 +245,7 @@ export default function InvoicePage() {
           <Loader label="Loading invoice…" />
         </div>
       ) : rows.length === 0 ? (
-        <div className="card-elevated">
+        <div className="card-elevated glass-surface">
           <p className="muted mb-0">
             {filterUserId
               ? "No orders for this user in this month."
@@ -250,7 +255,7 @@ export default function InvoicePage() {
       ) : (
         <>
           {grouped.map((g) => (
-            <section key={g.userId} className="card-elevated invoice-user-block">
+            <section key={g.userId} className="card-elevated invoice-user-block glass-surface">
               <div className="invoice-user-head">
                 <div>
                   <h2 className="invoice-user-name">
@@ -311,11 +316,13 @@ export default function InvoicePage() {
             </section>
           ))}
 
-          <div className="card-elevated invoice-grand-total">
+          <div className="card-elevated invoice-grand-total glass-surface">
             <span className="invoice-grand-label">
               {filterUserId ? "Total (filtered)" : "Grand total (month)"}
             </span>
-            <span className="invoice-grand-amount">₹{grandTotal}</span>
+            <span className="invoice-grand-amount">
+              ₹{filterUserId ? displayedGrandTotal : grandTotal}
+            </span>
             <span className="invoice-grand-label">Optimized total (split)</span>
             <span className="invoice-grand-amount">₹{optimizedGrandTotal}</span>
           </div>

@@ -540,8 +540,8 @@ export default function HomePage() {
   const rangeDisplay = `${formatDateDDMMYYYY(range.from)} – ${formatDateDDMMYYYY(range.to)}`;
 
   return (
-    <div className="page page--wide home-dashboard">
-      <div className="page-head home-dashboard-head">
+    <div className="page page--wide home-dashboard home-dashboard--glass">
+      <div className="page-head home-dashboard-head glass-hero">
         <div>
           <p className="eyebrow">Overview</p>
           <h1>Home</h1>
@@ -561,7 +561,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="card-elevated invoice-toolbar home-month-toolbar">
+      <div className="card-elevated invoice-toolbar home-month-toolbar glass-surface">
         <label className="invoice-month-label">
           <span className="form-section-title invoice-month-title">
             Month for charts
@@ -583,7 +583,7 @@ export default function HomePage() {
       </div>
 
       <div className="home-stat-grid">
-        <div className="card-elevated home-stat-card">
+        <div className="card-elevated home-stat-card glass-surface">
           <p className="home-stat-label muted mb-0">Orders</p>
           <p className="home-stat-sublabel muted small mb-0">
             {monthHumanLabel(chartMonth)}
@@ -600,7 +600,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
-        <div className="card-elevated home-stat-card home-stat-card--accent">
+        <div className="card-elevated home-stat-card home-stat-card--accent glass-surface">
           <p className="home-stat-label mb-0">Expence</p>
           <p className="home-stat-sublabel muted small mb-0">
             {monthHumanLabel(chartMonth)}
@@ -617,7 +617,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
-        <div className="card-elevated home-stat-card">
+        <div className="card-elevated home-stat-card glass-surface">
           <p className="home-stat-label muted mb-0">Users</p>
           <div className="home-stat-value">
             {usersLoading ? (
@@ -631,7 +631,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
-        <div className="card-elevated home-stat-card home-stat-card--housekeeper">
+        <div className="card-elevated home-stat-card home-stat-card--housekeeper glass-surface">
           <p className="home-stat-label mb-0">HouseKeeper</p>
           <p className="home-stat-sublabel muted small mb-0">
             {hkMonthLoading ? (
@@ -658,7 +658,7 @@ export default function HomePage() {
       </div>
 
       <div className="home-charts-row">
-        <div className="card-elevated home-chart-card">
+        <div className="card-elevated home-chart-card glass-surface">
           <h2 className="form-section-title home-chart-title">
             Daily expence ({monthHumanLabel(chartMonth)})
           </h2>
@@ -687,7 +687,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="card-elevated home-chart-card">
+        <div className="card-elevated home-chart-card glass-surface">
           <h2 className="form-section-title home-chart-title">
             Top users ({monthHumanLabel(chartMonth)})
           </h2>
@@ -751,7 +751,7 @@ export default function HomePage() {
       </div>
 
       <div className="home-charts-row">
-        <div className="card-elevated home-chart-card home-chart-card--span2">
+        <div className="card-elevated home-chart-card home-chart-card--span2 glass-surface">
           <h2 className="form-section-title home-chart-title">
             Optimized total vs current total ({monthHumanLabel(chartMonth)})
           </h2>
@@ -835,7 +835,7 @@ export default function HomePage() {
       </div>
 
       <div className="home-charts-row">
-        <div className="card-elevated home-chart-card home-chart-card--span2">
+        <div className="card-elevated home-chart-card home-chart-card--span2 glass-surface">
           <h2 className="form-section-title home-chart-title">
             HouseKeeper totalAmount (current year)
           </h2>
@@ -895,7 +895,7 @@ export default function HomePage() {
       </div>
 
       <div className="home-charts-row">
-        <div className="card-elevated home-chart-card home-chart-card--span2">
+        <div className="card-elevated home-chart-card home-chart-card--span2 glass-surface">
           <h2 className="form-section-title home-chart-title">
             Light bill (current year)
           </h2>
@@ -975,15 +975,15 @@ export default function HomePage() {
           </Link>
         </div>
         {recentLoading ? (
-          <div className="card-elevated home-recent-loading">
+          <div className="card-elevated home-recent-loading glass-surface">
             <Loader variant="inline" label="Loading recent orders…" />
           </div>
         ) : recentError ? (
-          <div className="card-elevated banner banner--error" role="alert">
+          <div className="card-elevated banner banner--error glass-surface" role="alert">
             {recentError}
           </div>
         ) : recentOrders.length === 0 ? (
-          <div className="card-elevated">
+          <div className="card-elevated glass-surface">
             <p className="muted mb-0">No orders in the last 120 days.</p>
           </div>
         ) : (
