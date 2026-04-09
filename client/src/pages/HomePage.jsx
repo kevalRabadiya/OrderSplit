@@ -215,8 +215,18 @@ export default function HomePage() {
   const [housekeeperYearRows, setHousekeeperYearRows] = useState([]);
   const [lightBillYearRows, setLightBillYearRows] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [usersError, setUsersError] = useState(null);
+  const [monthOrdersLoading, setMonthOrdersLoading] = useState(true);
+  const [monthOrdersError, setMonthOrdersError] = useState(null);
+  const [hkMonthLoading, setHkMonthLoading] = useState(true);
+  const [hkMonthError, setHkMonthError] = useState(null);
+  const [hkYearLoading, setHkYearLoading] = useState(true);
+  const [hkYearError, setHkYearError] = useState(null);
+  const [recentLoading, setRecentLoading] = useState(true);
+  const [recentError, setRecentError] = useState(null);
+  const [lightLoading, setLightLoading] = useState(true);
+  const [lightError, setLightError] = useState(null);
 
   const range = useMemo(() => monthToDateRange(chartMonth), [chartMonth]);
   const today = useMemo(() => todayISO(), []);
@@ -360,81 +370,174 @@ export default function HomePage() {
 
   useEffect(() => {
     let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      setLoading(true);
-      Promise.all([
-        getUsers(),
-        getOrdersHistory({ from: range.from, to: range.to }),
-        getHousekeeperAttendance({ from: range.from, to: range.to }),
-        getHousekeeperAttendance({ from: currentYearFrom, to: today }),
-        getOrdersHistory({ from: lookbackFrom, to: today }),
-        getLightBillsForYear(Number(today.slice(0, 4))).catch(() => []),
-      ])
-        .then(
-          ([
-            userList,
-            monthRows,
-            housekeeperList,
-            housekeeperYearList,
-            recentRows,
-            lightRows,
-          ]) => {
-          if (cancelled) return;
-          setError(null);
+    setUsersLoading(true);
+    setUsersError(null);
+    (async () => {
+      try {
+        const userList = await getUsers();
+        if (!cancelled) {
           setUsers(Array.isArray(userList) ? userList : []);
-          setMonthOrders(Array.isArray(monthRows) ? monthRows : []);
-          setHousekeeperRows(Array.isArray(housekeeperList) ? housekeeperList : []);
-          setHousekeeperYearRows(
-            Array.isArray(housekeeperYearList) ? housekeeperYearList : []
-          );
-          setLightBillYearRows(Array.isArray(lightRows) ? lightRows : []);
-          const sorted = Array.isArray(recentRows) ? recentRows : [];
-          setRecentOrders(sorted.slice(0, 4));
+          setUsersError(null);
         }
-        )
-        .catch((e) => {
-          if (!cancelled) {
-            setError(e.message);
-            setUsers([]);
-            setMonthOrders([]);
-            setHousekeeperRows([]);
-            setHousekeeperYearRows([]);
-            setLightBillYearRows([]);
-            setRecentOrders([]);
-          }
-        })
-        .finally(() => {
-          if (!cancelled) setLoading(false);
-        });
-    });
+      } catch (e) {
+        if (!cancelled) {
+          setUsers([]);
+          setUsersError(e?.message || "Failed to load users");
+        }
+      } finally {
+        if (!cancelled) setUsersLoading(false);
+      }
+    })();
     return () => {
       cancelled = true;
     };
-  }, [range.from, range.to, lookbackFrom, currentYearFrom, today]);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setMonthOrdersLoading(true);
+    setMonthOrdersError(null);
+    (async () => {
+      try {
+        const monthRows = await getOrdersHistory({
+          from: range.from,
+          to: range.to,
+        });
+        if (!cancelled) {
+          setMonthOrders(Array.isArray(monthRows) ? monthRows : []);
+          setMonthOrdersError(null);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setMonthOrders([]);
+          setMonthOrdersError(e?.message || "Failed to load orders");
+        }
+      } finally {
+        if (!cancelled) setMonthOrdersLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [range.from, range.to]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setHkMonthLoading(true);
+    setHkMonthError(null);
+    (async () => {
+      try {
+        const housekeeperList = await getHousekeeperAttendance({
+          from: range.from,
+          to: range.to,
+        });
+        if (!cancelled) {
+          setHousekeeperRows(
+            Array.isArray(housekeeperList) ? housekeeperList : []
+          );
+          setHkMonthError(null);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setHousekeeperRows([]);
+          setHkMonthError(e?.message || "Failed to load attendance");
+        }
+      } finally {
+        if (!cancelled) setHkMonthLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [range.from, range.to]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setHkYearLoading(true);
+    setHkYearError(null);
+    (async () => {
+      try {
+        const housekeeperYearList = await getHousekeeperAttendance({
+          from: currentYearFrom,
+          to: today,
+        });
+        if (!cancelled) {
+          setHousekeeperYearRows(
+            Array.isArray(housekeeperYearList) ? housekeeperYearList : []
+          );
+          setHkYearError(null);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setHousekeeperYearRows([]);
+          setHkYearError(e?.message || "Failed to load attendance");
+        }
+      } finally {
+        if (!cancelled) setHkYearLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentYearFrom, today]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setRecentLoading(true);
+    setRecentError(null);
+    (async () => {
+      try {
+        const recentRows = await getOrdersHistory({
+          from: lookbackFrom,
+          to: today,
+        });
+        if (!cancelled) {
+          const sorted = Array.isArray(recentRows) ? recentRows : [];
+          setRecentOrders(sorted.slice(0, 4));
+          setRecentError(null);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setRecentOrders([]);
+          setRecentError(e?.message || "Failed to load recent orders");
+        }
+      } finally {
+        if (!cancelled) setRecentLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [lookbackFrom, today]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLightLoading(true);
+    setLightError(null);
+    const year = Number(today.slice(0, 4));
+    (async () => {
+      try {
+        const lightRows = await getLightBillsForYear(year);
+        if (!cancelled) {
+          setLightBillYearRows(Array.isArray(lightRows) ? lightRows : []);
+          setLightError(null);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setLightBillYearRows([]);
+          setLightError(e?.message || "Failed to load light bills");
+        }
+      } finally {
+        if (!cancelled) setLightLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [today]);
 
   const monthLabelShort = `${chartMonth.slice(5, 7)}/${chartMonth.slice(0, 4)}`;
   const rangeDisplay = `${formatDateDDMMYYYY(range.from)} – ${formatDateDDMMYYYY(range.to)}`;
-
-  if (loading) {
-    return (
-      <div className="page page--wide home-dashboard">
-        <div className="loading-block">
-          <Loader label="Loading dashboard…" />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="page page--wide home-dashboard">
-        <div className="banner banner--error" role="alert">
-          {error}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="page page--wide home-dashboard">
@@ -485,25 +588,72 @@ export default function HomePage() {
           <p className="home-stat-sublabel muted small mb-0">
             {monthHumanLabel(chartMonth)}
           </p>
-          <p className="home-stat-value">{stats.orderCount}</p>
+          <div className="home-stat-value">
+            {monthOrdersLoading ? (
+              <Loader variant="inline" label="Loading orders…" />
+            ) : monthOrdersError ? (
+              <span className="small muted" role="alert">
+                {monthOrdersError}
+              </span>
+            ) : (
+              stats.orderCount
+            )}
+          </div>
         </div>
         <div className="card-elevated home-stat-card home-stat-card--accent">
           <p className="home-stat-label mb-0">Expence</p>
           <p className="home-stat-sublabel muted small mb-0">
             {monthHumanLabel(chartMonth)}
           </p>
-          <p className="home-stat-value">₹{optimizedMonthTotal}</p>
+          <div className="home-stat-value">
+            {monthOrdersLoading ? (
+              <Loader variant="inline" label="Loading totals…" />
+            ) : monthOrdersError ? (
+              <span className="small muted" role="alert">
+                {monthOrdersError}
+              </span>
+            ) : (
+              <>₹{optimizedMonthTotal}</>
+            )}
+          </div>
         </div>
         <div className="card-elevated home-stat-card">
           <p className="home-stat-label muted mb-0">Users</p>
-          <p className="home-stat-value">{users.length}</p>
+          <div className="home-stat-value">
+            {usersLoading ? (
+              <Loader variant="inline" label="Loading users…" />
+            ) : usersError ? (
+              <span className="small muted" role="alert">
+                {usersError}
+              </span>
+            ) : (
+              users.length
+            )}
+          </div>
         </div>
         <div className="card-elevated home-stat-card home-stat-card--housekeeper">
           <p className="home-stat-label mb-0">HouseKeeper</p>
           <p className="home-stat-sublabel muted small mb-0">
-            {housekeeperDays} day{housekeeperDays === 1 ? "" : "s"} × ₹{housekeeperRate}
+            {hkMonthLoading ? (
+              <span className="muted">Loading…</span>
+            ) : hkMonthError ? null : (
+              <>
+                {housekeeperDays} day{housekeeperDays === 1 ? "" : "s"} × ₹
+                {housekeeperRate}
+              </>
+            )}
           </p>
-          <p className="home-stat-value">₹{housekeeperAmount}</p>
+          <div className="home-stat-value">
+            {hkMonthLoading ? (
+              <Loader variant="inline" label="Loading…" />
+            ) : hkMonthError ? (
+              <span className="small muted" role="alert">
+                {hkMonthError}
+              </span>
+            ) : (
+              <>₹{housekeeperAmount}</>
+            )}
+          </div>
         </div>
       </div>
 
@@ -517,7 +667,13 @@ export default function HomePage() {
             include actual order totals.
           </p>
           <div className="home-chart-inner">
-            {stats.orderCount === 0 ? (
+            {monthOrdersLoading ? (
+              <Loader variant="inline" label="Loading chart…" />
+            ) : monthOrdersError ? (
+              <p className="muted mb-0 home-chart-empty" role="alert">
+                {monthOrdersError}
+              </p>
+            ) : stats.orderCount === 0 ? (
               <p className="muted mb-0 home-chart-empty">
                 No orders in {monthHumanLabel(chartMonth)}.
               </p>
@@ -536,7 +692,13 @@ export default function HomePage() {
             Top users ({monthHumanLabel(chartMonth)})
           </h2>
           <div className="home-chart-inner">
-            {topCustomersWithNames.length === 0 ? (
+            {monthOrdersLoading ? (
+              <Loader variant="inline" label="Loading chart…" />
+            ) : monthOrdersError ? (
+              <p className="muted mb-0 home-chart-empty" role="alert">
+                {monthOrdersError}
+              </p>
+            ) : topCustomersWithNames.length === 0 ? (
               <p className="muted mb-0 home-chart-empty">
                 No orders in {monthHumanLabel(chartMonth)}.
               </p>
@@ -594,7 +756,13 @@ export default function HomePage() {
             Optimized total vs current total ({monthHumanLabel(chartMonth)})
           </h2>
           <div className="home-chart-inner">
-            {stats.orderCount === 0 ? (
+            {monthOrdersLoading ? (
+              <Loader variant="inline" label="Loading chart…" />
+            ) : monthOrdersError ? (
+              <p className="muted mb-0 home-chart-empty" role="alert">
+                {monthOrdersError}
+              </p>
+            ) : stats.orderCount === 0 ? (
               <p className="muted mb-0 home-chart-empty">
                 No orders in {monthHumanLabel(chartMonth)}.
               </p>
@@ -672,7 +840,13 @@ export default function HomePage() {
             HouseKeeper totalAmount (current year)
           </h2>
           <div className="home-chart-inner">
-            {housekeeperMonthlyChartData.length === 0 ? (
+            {hkYearLoading ? (
+              <Loader variant="inline" label="Loading chart…" />
+            ) : hkYearError ? (
+              <p className="muted mb-0 home-chart-empty" role="alert">
+                {hkYearError}
+              </p>
+            ) : housekeeperMonthlyChartData.length === 0 ? (
               <p className="muted mb-0 home-chart-empty">No data.</p>
             ) : (
               <ResponsiveContainer width="100%" height={260}>
@@ -726,7 +900,13 @@ export default function HomePage() {
             Light bill (current year)
           </h2>
           <div className="home-chart-inner">
-            {lightBillPeriodChartData.length === 0 ? (
+            {lightLoading ? (
+              <Loader variant="inline" label="Loading light bills…" />
+            ) : lightError ? (
+              <p className="muted mb-0 home-chart-empty" role="alert">
+                {lightError}
+              </p>
+            ) : lightBillPeriodChartData.length === 0 ? (
               <p className="muted mb-0 home-chart-empty">No data.</p>
             ) : (
               <ResponsiveContainer width="100%" height={260}>
@@ -794,7 +974,15 @@ export default function HomePage() {
             Full history →
           </Link>
         </div>
-        {recentOrders.length === 0 ? (
+        {recentLoading ? (
+          <div className="card-elevated home-recent-loading">
+            <Loader variant="inline" label="Loading recent orders…" />
+          </div>
+        ) : recentError ? (
+          <div className="card-elevated banner banner--error" role="alert">
+            {recentError}
+          </div>
+        ) : recentOrders.length === 0 ? (
           <div className="card-elevated">
             <p className="muted mb-0">No orders in the last 120 days.</p>
           </div>
