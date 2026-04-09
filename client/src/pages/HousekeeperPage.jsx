@@ -114,8 +114,8 @@ export default function HousekeeperPage() {
   }
 
   return (
-    <div className="page page--wide">
-      <div className="page-head">
+    <div className="page page--wide housekeeper-page">
+      <div className="page-head housekeeper-page-head glass-hero">
         <div>
           <p className="eyebrow">Attendance</p>
           <h1>HouseKeeper</h1>
@@ -125,7 +125,7 @@ export default function HousekeeperPage() {
         </div>
       </div>
 
-      <div className="card-elevated housekeeper-toolbar">
+      <div className="card-elevated housekeeper-toolbar glass-surface">
         <div className="housekeeper-month-nav">
           <button
             type="button"
@@ -156,11 +156,11 @@ export default function HousekeeperPage() {
       ) : null}
 
       <div className="housekeeper-stat-grid">
-        <div className="card-elevated housekeeper-stat-card">
+        <div className="card-elevated housekeeper-stat-card glass-surface">
           <p className="home-stat-label muted mb-0">Present days</p>
           <p className="home-stat-value">{attendedDays}</p>
         </div>
-        <div className="card-elevated housekeeper-stat-card housekeeper-stat-card--accent">
+        <div className="card-elevated housekeeper-stat-card housekeeper-stat-card--accent glass-surface">
           <p className="home-stat-label mb-0">Amount</p>
           <p className="home-stat-sublabel muted small mb-0">
             ₹{RATE_PER_DAY} per day
@@ -169,7 +169,7 @@ export default function HousekeeperPage() {
         </div>
       </div>
 
-      <section className="card-elevated housekeeper-calendar-wrap">
+      <section className="card-elevated housekeeper-calendar-wrap glass-surface">
         <div className="housekeeper-calendar-weekdays">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((w) => (
             <div key={w}>{w}</div>

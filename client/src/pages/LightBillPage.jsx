@@ -154,8 +154,8 @@ export default function LightBillPage() {
   }
 
   return (
-    <div className="page page--wide">
-      <div className="page-head">
+    <div className="page page--wide lightbill-page">
+      <div className="page-head lightbill-page-head glass-hero">
         <div>
           <p className="eyebrow">Utilities</p>
           <h1>Light bill</h1>
@@ -175,7 +175,7 @@ export default function LightBillPage() {
         </div>
       ) : (
         <>
-          <form className="form card-elevated" onSubmit={onSubmit}>
+          <form className="form card-elevated lightbill-form glass-surface" onSubmit={onSubmit}>
             <h2 className="form-section-title mb-0">Billing period</h2>
             <p className="small muted mb-0">
               {periodLabel(fromMonthKey, toMonthKey)}
@@ -227,7 +227,7 @@ export default function LightBillPage() {
             </div>
           </form>
 
-          <section className="card-elevated light-bill-history">
+          <section className="card-elevated light-bill-history glass-surface">
             <div className="light-bill-history-head">
               <h2 className="form-section-title mb-0">Recent light bill history</h2>
               <span className="small muted">Last 4</span>
