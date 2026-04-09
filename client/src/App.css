@@ -1179,6 +1179,33 @@
   margin-top: 1rem;
 }
 
+.lightbill-page {
+  position: relative;
+}
+
+.lightbill-form {
+  max-width: min(100%, 48rem);
+  border-color: var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg) 80%, transparent);
+}
+
+.lightbill-form .light-bill-period-grid {
+  gap: 0.9rem 1rem;
+}
+
+.lightbill-form input[type="month"],
+.lightbill-form input[type="number"] {
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.lightbill-form input[type="month"]:focus-visible,
+.lightbill-form input[type="number"]:focus-visible {
+  transform: translateY(-1px);
+}
+
 .light-bill-history-head {
   display: flex;
   align-items: baseline;
@@ -1187,11 +1214,18 @@
   margin-bottom: 0.75rem;
 }
 
+.lightbill-page .light-bill-history {
+  max-width: min(100%, 56rem);
+  margin-inline: auto;
+  border-color: var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg) 80%, transparent);
+}
+
 .light-bill-history-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -1202,7 +1236,15 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.7rem 0.85rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.light-bill-history-item:hover {
+  background: color-mix(in srgb, var(--accent-muted) 40%, transparent);
+  transform: translateY(-1px);
 }
 
 .light-bill-history-item:last-child {
@@ -1226,6 +1268,7 @@
   color: var(--text-h);
   font-weight: 700;
   white-space: nowrap;
+  text-shadow: 0 1px 12px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .history-summary {
@@ -1687,7 +1730,7 @@
 
 @media (max-width: 720px) {
   .home-stat-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1929,8 +1972,29 @@
 }
 
 /* —— HouseKeeper page —— */
+.housekeeper-page {
+  position: relative;
+}
+
+.housekeeper-page-head,
+.lightbill-page-head {
+  max-width: min(100%, 56rem);
+  margin-inline: auto;
+  margin-bottom: 1.2rem;
+}
+
+.housekeeper-page .housekeeper-toolbar,
+.housekeeper-page .housekeeper-stat-grid,
+.housekeeper-page .housekeeper-calendar-wrap,
+.lightbill-page .lightbill-form {
+  max-width: min(100%, 56rem);
+  margin-inline: auto;
+}
+
 .housekeeper-toolbar {
   margin-bottom: 1rem;
+  border-color: var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg) 78%, transparent);
 }
 
 .housekeeper-month-nav {
@@ -1941,6 +2005,11 @@
   margin-bottom: 0.75rem;
 }
 
+.housekeeper-month-nav strong {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
 .housekeeper-stat-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1949,16 +2018,19 @@
 }
 
 .housekeeper-stat-card {
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg) 76%, transparent);
 }
 
 .housekeeper-stat-card--accent {
-  background: color-mix(in srgb, var(--accent-muted) 42%, var(--surface));
+  background: color-mix(in srgb, var(--accent-muted) 42%, var(--glass-bg));
   border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
 }
 
 .housekeeper-calendar-wrap {
   padding: 1rem;
+  border-color: var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg) 78%, transparent);
 }
 
 .housekeeper-calendar-weekdays {
@@ -1986,7 +2058,7 @@
   min-height: 4.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--glass-bg-strong) 84%, transparent);
   color: var(--text-h);
   padding: 0.5rem;
   display: flex;
@@ -1994,6 +2066,11 @@
   align-items: flex-start;
   justify-content: space-between;
   text-align: left;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background var(--motion-base) var(--motion-ease);
 }
 
 .housekeeper-day--empty {
@@ -2003,6 +2080,12 @@
 
 .housekeeper-day--clickable {
   cursor: pointer;
+}
+
+.housekeeper-day--clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
 }
 
 .housekeeper-day--future {
@@ -2143,7 +2226,9 @@
   }
 
   .history-page-head,
-  .invoice-page-head {
+  .invoice-page-head,
+  .housekeeper-page-head,
+  .lightbill-page-head {
     padding: 0.8rem 0.85rem;
   }
 
@@ -2244,6 +2329,28 @@
 
   .history-summary {
     padding: 0.9rem 0.85rem 1rem;
+  }
+
+  .housekeeper-toolbar,
+  .lightbill-form {
+    padding: 0.9rem 0.85rem;
+  }
+
+  .housekeeper-calendar-wrap {
+    padding: 0.85rem;
+  }
+
+  .housekeeper-month-nav {
+    gap: 0.5rem;
+  }
+
+  .housekeeper-month-nav .btn {
+    min-height: 2.5rem;
+    padding-inline: 0.7rem;
+  }
+
+  .light-bill-history-item {
+    padding: 0.65rem 0.75rem;
   }
 
   .order-form.card-elevated {
@@ -2410,12 +2517,22 @@
   font-weight: 500;
 }
 
-@media (min-width: 480px) and (max-width: 720px) {
+@media (max-width: 720px) {
   .home-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .home-stat-grid .home-stat-card:last-child {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 340px) {
+  .home-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-stat-grid .home-stat-card:last-child {
+    grid-column: auto;
   }
 }
