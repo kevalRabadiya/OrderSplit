@@ -144,8 +144,8 @@ function UtilitiesMenu() {
 
 function Layout({ children }) {
   return (
-    <div className="app">
-      <header className="nav">
+    <div className="app app-glass">
+      <header className="nav nav-glass">
         <Link to="/" className="brand">
           Flat Expense
         </Link>
