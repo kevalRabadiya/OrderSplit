@@ -15,9 +15,17 @@
 }
 
 [data-theme="dark"] .app-glass {
-  --glass-bg: color-mix(in srgb, var(--surface) 78%, transparent);
-  --glass-bg-strong: color-mix(in srgb, var(--surface) 86%, transparent);
-  --glass-border: color-mix(in srgb, #ffffff 8%, var(--border));
+  --glass-bg: color-mix(in srgb, var(--surface) 84%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--surface) 91%, transparent);
+  --glass-border: color-mix(in srgb, #ffffff 10%, var(--border));
+}
+
+@media (max-width: 640px) {
+  [data-theme="dark"] .app-glass {
+    --glass-bg: color-mix(in srgb, var(--surface) 90%, transparent);
+    --glass-bg-strong: color-mix(in srgb, var(--surface) 95%, transparent);
+    --glass-border: color-mix(in srgb, #ffffff 12%, var(--border));
+  }
 }
 
 .app {
@@ -793,6 +801,12 @@
   background: color-mix(in srgb, var(--error) 12%, var(--surface));
   color: var(--error);
   border: 1px solid color-mix(in srgb, var(--error) 25%, var(--border));
+}
+
+[data-theme="dark"] .banner--error {
+  background: color-mix(in srgb, var(--error) 24%, var(--surface));
+  color: var(--text-h);
+  border-color: color-mix(in srgb, var(--error) 42%, var(--border));
 }
 
 .banner--success {
@@ -1653,7 +1667,7 @@
   margin-top: 0.75rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 960px) {
   .history-summary-grid {
     grid-template-columns: 1fr 1fr;
     align-items: start;
@@ -1670,6 +1684,51 @@
 
 .history-summary-col .history-summary-section:not(:first-of-type) {
   margin-top: 1rem;
+}
+
+/* Below desktop: Thalis (left) + Extras (right) in one row */
+@media (max-width: 959px) {
+  .history-summary-grid
+    > .history-summary-col:not(.history-summary-optimize) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.75rem 1rem;
+    align-items: start;
+  }
+
+  .history-summary-grid
+    > .history-summary-col:not(.history-summary-optimize)
+    .history-summary-section {
+    margin-top: 0;
+  }
+
+  .history-summary-grid
+    > .history-summary-col:not(.history-summary-optimize)
+    .history-summary-section:first-of-type {
+    margin-top: 0;
+  }
+
+  .history-summary-grid
+    > .history-summary-col:not(.history-summary-optimize)
+    .history-summary-section:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .history-summary-grid
+    > .history-summary-col:not(.history-summary-optimize)
+    .history-summary-dl {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem 0.5rem;
+  }
+
+  .history-summary-grid
+    > .history-summary-col:not(.history-summary-optimize)
+    .history-summary-dl
+    dd {
+    text-align: right;
+    justify-self: end;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 .history-summary-optimize {
@@ -1701,6 +1760,22 @@
   padding-left: 1.15rem;
   font-size: 0.9375rem;
   color: var(--text-h);
+}
+
+.history-summary-optimize-bundle-list {
+  margin: 0.35rem 0 0;
+  padding-left: 1.05rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--text-h);
+}
+
+.history-summary-optimize-bundle-list li {
+  margin-bottom: 0.35rem;
+}
+
+.history-summary-optimize-bundle-list li:last-child {
+  margin-bottom: 0;
 }
 
 .history-summary-optimize-total {
@@ -1739,8 +1814,9 @@
 
 .history-summary-dl {
   display: grid;
-  grid-template-columns: minmax(7rem, 11rem) 1fr;
-  gap: 0.5rem 1rem;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
   margin: 0;
   font-size: 0.9375rem;
 }
@@ -1767,20 +1843,6 @@
 
 .history-summary-name {
   font-weight: 500;
-}
-
-@media (max-width: 520px) {
-  .history-summary-dl {
-    grid-template-columns: 1fr;
-  }
-
-  .history-summary-dl dt {
-    margin-top: 0.35rem;
-  }
-
-  .history-summary-dl dt:first-child {
-    margin-top: 0;
-  }
 }
 
 .table-scroll {
@@ -2024,6 +2086,15 @@
   transform: translateY(-2px);
   box-shadow: var(--glass-shadow-hover);
   border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+}
+
+@media (max-width: 640px) {
+  [data-theme="dark"] .glass-surface {
+    backdrop-filter: blur(12px) saturate(125%);
+    box-shadow:
+      0 8px 22px color-mix(in srgb, var(--text-h) 14%, transparent),
+      0 1px 6px color-mix(in srgb, var(--accent) 12%, transparent);
+  }
 }
 
 .auth-form.glass-surface:hover {

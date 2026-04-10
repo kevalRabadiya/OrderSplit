@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
 import {
   Bar,
@@ -15,6 +15,7 @@ import {
   getHousekeeperAttendance,
   getLightBillsForYear,
   getOrdersHistory,
+  getStoredToken,
   getUsers,
 } from "../api";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
@@ -207,10 +208,37 @@ function useChartThemeColors() {
   );
 }
 
+const CHART_COMPACT_MQ = "(max-width: 640px)";
+
+function subscribeChartCompact(callback) {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia(CHART_COMPACT_MQ);
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+
+function getChartCompactSnapshot() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(CHART_COMPACT_MQ).matches;
+}
+
+function useChartCompactLayout() {
+  return useSyncExternalStore(subscribeChartCompact, getChartCompactSnapshot, () => false);
+}
+
 export default function HomePage() {
   const { user } = useAuth();
   const selfId = user?._id ? String(user._id) : "";
   const chartColors = useChartThemeColors();
+  const chartCompact = useChartCompactLayout();
+  const barMargin = chartCompact
+    ? { top: 8, right: 6, left: 8, bottom: 10 }
+    : { top: 8, right: 8, left: 0, bottom: 0 };
+  const barYAxisWidth = chartCompact ? 48 : 40;
+  const barHMargin = chartCompact
+    ? { top: 8, right: 12, left: 6, bottom: 0 }
+    : { top: 8, right: 16, left: 8, bottom: 0 };
+  const barHYAxisWidth = chartCompact ? 76 : 88;
   const [chartMonth, setChartMonth] = useState(currentMonthValue);
   const [users, setUsers] = useState([]);
   const [monthOrders, setMonthOrders] = useState([]);
@@ -425,6 +453,12 @@ export default function HomePage() {
   }, [range.from, range.to]);
 
   useEffect(() => {
+    if (!getStoredToken()) {
+      setHkMonthLoading(false);
+      setHousekeeperRows([]);
+      setHkMonthError(null);
+      return;
+    }
     let cancelled = false;
     setHkMonthLoading(true);
     setHkMonthError(null);
@@ -455,6 +489,12 @@ export default function HomePage() {
   }, [range.from, range.to]);
 
   useEffect(() => {
+    if (!getStoredToken()) {
+      setHkYearLoading(false);
+      setHousekeeperYearRows([]);
+      setHkYearError(null);
+      return;
+    }
     let cancelled = false;
     setHkYearLoading(true);
     setHkYearError(null);
@@ -514,6 +554,12 @@ export default function HomePage() {
   }, [lookbackFrom, today]);
 
   useEffect(() => {
+    if (!getStoredToken()) {
+      setLightLoading(false);
+      setLightBillYearRows([]);
+      setLightError(null);
+      return;
+    }
     let cancelled = false;
     setLightLoading(true);
     setLightError(null);
@@ -710,7 +756,7 @@ export default function HomePage() {
                 <BarChart
                   layout="vertical"
                   data={topCustomersWithNames}
-                  margin={{ top: 8, right: 16, left: 8, bottom: 0 }}
+                  margin={barHMargin}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -726,7 +772,7 @@ export default function HomePage() {
                   <YAxis
                     type="category"
                     dataKey="label"
-                    width={88}
+                    width={barHYAxisWidth}
                     tick={{ fill: chartColors.text, fontSize: 11 }}
                     tickLine={false}
                     axisLine={{ stroke: chartColors.border }}
@@ -779,7 +825,7 @@ export default function HomePage() {
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart
                     data={dailyOptimizationChart}
-                    margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                    margin={barMargin}
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
@@ -796,7 +842,7 @@ export default function HomePage() {
                       tick={{ fill: chartColors.text, fontSize: 11 }}
                       tickLine={false}
                       axisLine={{ stroke: chartColors.border }}
-                      width={40}
+                      width={barYAxisWidth}
                     />
                     <Tooltip
                       contentStyle={{
@@ -855,7 +901,7 @@ export default function HomePage() {
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart
                   data={housekeeperMonthlyChartData}
-                  margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                  margin={barMargin}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -872,7 +918,7 @@ export default function HomePage() {
                     tick={{ fill: chartColors.text, fontSize: 11 }}
                     tickLine={false}
                     axisLine={{ stroke: chartColors.border }}
-                    width={40}
+                    width={barYAxisWidth}
                   />
                   <Tooltip
                     contentStyle={{
@@ -915,7 +961,11 @@ export default function HomePage() {
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart
                   data={lightBillPeriodChartData}
-                  margin={{ top: 8, right: 8, left: 0, bottom: 8 }}
+                  margin={
+                    chartCompact
+                      ? { top: 8, right: 6, left: 8, bottom: 14 }
+                      : { top: 8, right: 8, left: 0, bottom: 8 }
+                  }
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -936,7 +986,7 @@ export default function HomePage() {
                     tick={{ fill: chartColors.text, fontSize: 11 }}
                     tickLine={false}
                     axisLine={{ stroke: chartColors.border }}
-                    width={40}
+                    width={barYAxisWidth}
                   />
                   <Tooltip
                     contentStyle={{

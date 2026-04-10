@@ -9,6 +9,7 @@ import {
   aggregateHistorySummary,
   formatThaliSummaryLine,
 } from "../utils/aggregateHistorySummary.js";
+import { listOptimizedThaliCoverage } from "../data/thaliBundles.js";
 import {
   EXTRA_PRICES,
   formatOptimizedThaliLine,
@@ -82,6 +83,10 @@ export default function HistoryPage() {
   const optimize = useMemo(
     () => optimizeExtrasForRange(summary, { includeOrderedThalis: true }),
     [summary]
+  );
+  const optimizeThaliCoverageRows = useMemo(
+    () => listOptimizedThaliCoverage(optimize.thaliCounts),
+    [optimize.thaliCounts]
   );
 
   const hasThaliTotals = summary.thaliCounts.size > 0;
@@ -410,6 +415,17 @@ export default function HistoryPage() {
                         <p className="small muted mb-0">
                           Thali bundles subtotal: ₹{optimize.thaliOnlyCost}
                         </p>
+                      ) : null}
+                      {optimizeThaliCoverageRows.length > 0 ? (
+                        <ul className="history-summary-optimize-bundle-list">
+                          {optimizeThaliCoverageRows.map((row) => (
+                            <li key={row.id}>
+                              <strong>Thali {row.id}</strong>
+                              {row.count !== 1 ? ` × ${row.count}` : ""}:{" "}
+                              <span className="small muted">{row.coverage}</span>
+                            </li>
+                          ))}
+                        </ul>
                       ) : null}
                     </>
                   ) : null}

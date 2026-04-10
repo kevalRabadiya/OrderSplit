@@ -17,3 +17,36 @@ export const THALI_BUNDLES = [
   { id: 4, price: readVitePrice("VITE_THALI_4_PRICE", 90), roti: 5, sabji: 2, dalRice: 0 },
   { id: 5, price: readVitePrice("VITE_THALI_5_PRICE", 75), roti: 5, sabji: 1, dalRice: 0 },
 ];
+
+const THALI_BY_ID = new Map(THALI_BUNDLES.map((b) => [b.id, b]));
+
+/**
+ * What one plate of this thali type includes for the bundle optimizer (roti/sabji/dal-rice slots).
+ * @param {number} thaliId
+ */
+export function describeThaliBundleCoverage(thaliId) {
+  const b = THALI_BY_ID.get(Number(thaliId));
+  if (!b) return "";
+  const roti = `${b.roti} roti`;
+  const sabji = `${b.sabji} sabji portion${b.sabji === 1 ? "" : "s"}`;
+  if (b.dalRice > 0) {
+    return `${roti}, ${sabji}, ${b.dalRice} dal-rice slot per plate (each Pulav, Khichdi, or Dalrice line counts as one slot).`;
+  }
+  return `${roti}, ${sabji} per plate; no dal-rice in this bundle — Pulav/Khichdi/Dalrice stay as separate dal-rice units in the optimizer.`;
+}
+
+/**
+ * @param {Map<number, number>|undefined|null} thaliCounts
+ * @returns {{ id: number; count: number; coverage: string }[]}
+ */
+export function listOptimizedThaliCoverage(thaliCounts) {
+  if (!thaliCounts || thaliCounts.size === 0) return [];
+  return [...thaliCounts.entries()]
+    .map(([id, n]) => ({ id: Number(id), count: Number(n) }))
+    .filter((row) => row.count > 0 && Number.isInteger(row.id))
+    .sort((a, b) => a.id - b.id)
+    .map((row) => ({
+      ...row,
+      coverage: describeThaliBundleCoverage(row.id),
+    }));
+}

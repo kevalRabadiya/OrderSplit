@@ -52,16 +52,33 @@ export function setStoredToken(token) {
   else localStorage.removeItem(TOKEN_KEY);
 }
 
+/** Path without query or hash — public-route checks must not depend on `?…`. */
+function apiPathname(path) {
+  const s = String(path);
+  const q = s.indexOf("?");
+  const h = s.indexOf("#");
+  const end =
+    q === -1 && h === -1
+      ? s.length
+      : q === -1
+        ? h
+        : h === -1
+          ? q
+          : Math.min(q, h);
+  return s.slice(0, end);
+}
+
 /** Headers that skip attaching Bearer (public or non-user APIs). */
 function authHeaderForPath(path) {
   const token = getStoredToken();
   if (!token) return {};
+  const p = apiPathname(path);
   const noBearer =
-    path === "/health" ||
-    path === "/api/orders/preview" ||
-    path === "/api/auth/register-org" ||
-    path === "/api/auth/register-member" ||
-    path === "/api/auth/login";
+    p === "/health" ||
+    p === "/api/orders/preview" ||
+    p === "/api/auth/register-org" ||
+    p === "/api/auth/register-member" ||
+    p === "/api/auth/login";
   if (noBearer) return {};
   return { Authorization: `Bearer ${token}` };
 }
