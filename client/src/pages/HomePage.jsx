@@ -191,10 +191,10 @@ const CHART_THEME = {
   },
   dark: {
     accent: "#fb923c",
-    text: "#a8a29e",
+    text: "#b8b3ad",
     textHeading: "#fafaf9",
-    border: "#44403c",
-    grid: "#44403c",
+    border: "#57534e",
+    grid: "#57534e",
   },
 };
 

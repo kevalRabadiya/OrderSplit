@@ -43,25 +43,25 @@ html {
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --text: #a8a29e;
+  --text: #b8b3ad;
   --text-h: #fafaf9;
-  --bg: #0c0a09;
-  --bg-elevated: #1c1917;
-  --surface: #1c1917;
-  --border: #44403c;
+  --bg: #292524;
+  --bg-elevated: #3a3630;
+  --surface: #403c37;
+  --border: #57534e;
   --accent: #fb923c;
   --accent-hover: #fdba74;
   --accent-muted: rgba(251, 146, 60, 0.15);
   --error: #f87171;
   --success: #4ade80;
-  --btn-on-accent: #1c1917;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --btn-on-accent: #292524;
+  --shadow-sm: 0 1px 2px rgba(12, 10, 9, 0.22);
   --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.45),
-    0 2px 4px -2px rgba(0, 0, 0, 0.35);
+    0 4px 6px -1px rgba(12, 10, 9, 0.28),
+    0 2px 4px -2px rgba(12, 10, 9, 0.2);
   --shadow-lg:
-    0 20px 25px -5px rgba(0, 0, 0, 0.5),
-    0 8px 10px -6px rgba(0, 0, 0, 0.4);
+    0 20px 25px -5px rgba(12, 10, 9, 0.32),
+    0 8px 10px -6px rgba(12, 10, 9, 0.24);
 }
 
 body {
