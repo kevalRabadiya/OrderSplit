@@ -20,22 +20,9 @@ if (!MONGODB_URI) {
 
 const app = express();
 
-function isAllowedCorsOrigin(origin: string | undefined) {
-  // Allow all origins (as requested).
-  return true;
-}
-
 app.use(
   cors({
-    origin(origin, callback) {
-      if (isAllowedCorsOrigin(origin)) {
-        callback(null, origin ?? true);
-      } else {
-        callback(null, false);
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: true, // reflect requesting Origin — any site allowed
     credentials: false,
   })
 );
