@@ -57,8 +57,8 @@ authRouter.post("/register", async (req, res, next) => {
       tokenVersion: 0,
     });
 
-    const token = signAuthToken({ userId: String(user._id), tokenVersion: user.tokenVersion });
-    res.status(201).json({
+    const token = signAuthToken({ userId: String(user._id) });
+     res.status(201).json({
       token,
       user: {
         _id: user._id,
@@ -100,8 +100,8 @@ authRouter.post("/login", async (req, res, next) => {
       return res.status(401).json({ error: "Invalid username or password" });
     }
 
-    const token = signAuthToken({ userId: String(user._id), tokenVersion: user.tokenVersion });
-    res.json({
+    const token = signAuthToken({ userId: String(user._id) });
+     res.json({
       token,
       user: {
         _id: user._id,
@@ -123,7 +123,7 @@ authRouter.post("/logout", requireAuth, async (req, res, next) => {
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    await User.findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 } });
+    // Intentionally no-op: sessions are persistent and are not revoked on logout.
     res.status(204).send();
   } catch (e) {
     next(e);

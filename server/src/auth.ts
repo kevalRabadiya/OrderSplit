@@ -13,7 +13,6 @@ const JWT_SECRET: string = jwtSecret;
 
 type JwtPayload = {
   userId: string;
-  tokenVersion: number;
 };
 
 export type AuthenticatedRequest = Request & {
@@ -38,12 +37,7 @@ export function signAuthToken(payload: JwtPayload) {
 
 function verifyAuthToken(token: string) {
   const decoded = jwt.verify(token, JWT_SECRET);
-  if (
-    !decoded ||
-    typeof decoded !== "object" ||
-    !("userId" in decoded) ||
-    !("tokenVersion" in decoded)
-  ) {
+  if (!decoded || typeof decoded !== "object" || !("userId" in decoded)) {
     throw new Error("Invalid token payload");
   }
   return decoded as JwtPayload;
@@ -66,12 +60,9 @@ export async function requireAuth(
     }
 
     const decoded = verifyAuthToken(token);
-    const user = await User.findById(decoded.userId).select("tokenVersion").lean();
+    const user = await User.findById(decoded.userId).select("_id").lean();
     if (!user) {
       return res.status(401).json({ error: "Invalid token" });
-    }
-    if (user.tokenVersion !== decoded.tokenVersion) {
-      return res.status(401).json({ error: "Session revoked. Please log in again." });
     }
 
     req.auth = { userId: decoded.userId };
