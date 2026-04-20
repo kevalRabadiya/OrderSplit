@@ -8,6 +8,8 @@ export default function AddUserPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,6 +22,10 @@ export default function AddUserPage() {
       setError("Please enter a valid email address.");
       return;
     }
+    if (password.length < 4) {
+      setError("Password must be at least 4 characters.");
+      return;
+    }
     setSaving(true);
     try {
       await createUser({
@@ -27,6 +33,8 @@ export default function AddUserPage() {
         phone,
         email: normalizedEmail,
         address: address.trim() || undefined,
+        username: username.trim().toLowerCase(),
+        password,
       });
       navigate("/users");
     } catch (err) {
@@ -80,6 +88,28 @@ export default function AddUserPage() {
             required
             autoComplete="email"
             placeholder="name@example.com"
+          />
+        </label>
+        <label>
+          Username
+          <input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
+            required
+            placeholder="e.g. john.doe"
+          />
+        </label>
+        <label>
+          Password
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            minLength={4}
+            autoComplete="new-password"
+            required
+            placeholder="Min 4 characters"
           />
         </label>
         <label>

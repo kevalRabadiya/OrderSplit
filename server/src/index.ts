@@ -3,6 +3,7 @@ import express, { type ErrorRequestHandler } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import { usersRouter } from "./routes/users.js";
+import { authRouter } from "./routes/auth.js";
 import { ordersRouter } from "./routes/orders.js";
 import { housekeeperRouter } from "./routes/housekeeper.js";
 import { lightBillRouter } from "./routes/lightBill.js";
@@ -17,36 +18,9 @@ if (!MONGODB_URI) {
 
 const app = express();
 
-function isAllowedCorsOrigin(origin: string | undefined) {
-  if (!origin) return true;
-  try {
-    const u = new URL(origin);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
-    const host = u.hostname;
-    if (host === "localhost" || host === "127.0.0.1") return true;
-    // Render web services (e.g. https://ordersplit.onrender.com and other *.onrender.com sites)
-    if (u.protocol === "https:" && host.endsWith(".onrender.com")) return true;
-    // Vercel deployments (preview + production *.vercel.app)
-    if (u.protocol === "https:" && host.endsWith(".vercel.app")) return true;
-  } catch {
-    return false;
-  }
-  const extra = process.env.CORS_ORIGINS?.split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  if (extra?.length && extra.includes(origin)) return true;
-  return false;
-}
-
 app.use(
   cors({
-    origin(origin, callback) {
-      if (isAllowedCorsOrigin(origin)) {
-        callback(null, origin ?? true);
-      } else {
-        callback(null, false);
-      }
-    },
+    origin: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: false,
@@ -63,6 +37,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/users", usersRouter);
+app.use("/api/auth", authRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/housekeeper", housekeeperRouter);
 app.use("/api/light-bill", lightBillRouter);

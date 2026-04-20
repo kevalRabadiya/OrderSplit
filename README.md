@@ -1,134 +1,106 @@
-# Flat-PG-Expense-Management
+# Flat Expense Management
 
-Internal tool for entering daily thali orders, built with a **React (Vite)** frontend, **Express + TypeScript** API, and **MongoDB**. Menu pricing is fixed and calculated on the server.
+Internal tool for daily tiffin order entry, tracking, and reporting. Stack is **React (Vite)** frontend, **Express + TypeScript** backend, and **MongoDB**.
 
-## Project overview
+## Current capabilities
 
-- Primary workflow: create users, place/update daily orders, and review totals through dashboard/history/invoice views.
-- Frontend: `client/` (Vite SPA).
-- Backend: `server/` (TypeScript source, compiled to `server/dist/` for production).
+- Username/password authentication with JWT tokens.
+- Protected API routes with authorization middleware.
+- Daily order create/update/delete (soft delete), preview pricing, and history/invoice reporting.
+- Housekeeper and light-bill utility modules.
+- Theme toggle and auth-aware navigation.
 
-## Feature highlights
+## Auth model
 
-### 1) User management
-
-- Add and maintain user records (`name`, `phone`, optional `address`).
-- Start a new order directly from user context.
-- View user-specific history and invoice totals through shared filtering.
-
-### 2) Order lifecycle
-
-- Create orders per user and date using multiple thali selections plus optional extras.
-- Preview total before saving (`Calculate` uses pricing logic without DB write).
-- Save as upsert for that user/date, update existing orders, or soft-delete.
-
-### 3) Reporting and analytics
-
-- Home dashboard shows previous month totals and visual breakdowns.
-- History supports date-range and user filtering for tabular review.
-- Invoice groups monthly totals by user with subtotal and grand total views.
-
-### 4) Theme and preferences
-
-- System/Light/Dark theme toggle in header.
-- Last selected user is remembered for faster order entry.
-
-## Feature-wise behavior (UI to API mapping)
-
-### User management
-
-- **UI routes:** `/users`, `/users/new`.
-- **Actions:** create user, list users, open order flow per user.
-- **API support:** `POST /api/users`, `GET /api/users`, `GET /api/users/:id`.
-
-### Order lifecycle
-
-- **UI route:** Order page (supports `?userId=` and optional `?date=YYYY-MM-DD`).
-- **Actions:** choose user/date, add/remove unlimited thali lines, add extras, calculate, save, update, delete.
-- **API support:**
-  - `POST /api/orders/preview` for calculation only.
-  - `POST /api/orders` to save/replace order for the day (upsert behavior).
-  - `PUT /api/orders/:userId` to update only when an order already exists.
-  - `GET /api/orders/:userId?date=YYYY-MM-DD` to load a single order.
-  - `DELETE /api/orders/:userId?date=YYYY-MM-DD` for soft delete (`deletedAt`).
-
-### Reporting and analytics
-
-- **UI routes:** `/` (home), history page (navbar), invoice page (navbar).
-- **Actions:**
-  - Home: previous month order count and expense, daily expense chart, top users chart, recent orders, and quick links.
-  - History: `from/to` range with optional user filter.
-  - Invoice: month + optional user filter; per-user subtotals plus grand total.
-- **API support:** `GET /api/orders?from=&to=&userId=` for list/filter data powering history and invoice.
-
-### Theme and preferences
-
-- **UI behavior:** theme stored in `localStorage` under `tiffin_theme`.
-- **User convenience:** last selected order user can be reused from `localStorage`.
+- Login uses `username` + `password`.
+- Password minimum is 4 characters.
+- JWT is signed without expiry, and `tokenVersion` is used for revocation on logout.
+- Protected routes require `Authorization: Bearer <token>`.
 
 ## API summary
 
+### Auth
+
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/users` | Create user `{ name, phone, address? }`. |
-| `GET` | `/api/users` | List users. |
-| `GET` | `/api/users/:id` | Get one user. |
-| `POST` | `/api/orders/preview` | Calculate `{ totalAmount }` from `{ thaliIds, extraItems }` without DB write. Legacy `thaliId` is accepted as a single selection. |
-| `GET` | `/api/orders?from=&to=&userId=` | List orders by date range (`YYYY-MM-DD`) with optional `userId`. Defaults: `from=today`, `to=from`. Requires `from <= to`. Rows include merged `thaliIds` and user snapshot (`name`, `phone`). |
-| `POST` | `/api/orders` | Save/replace order for date using `{ userId, thaliIds, extraItems, date? }`. |
-| `PUT` | `/api/orders/:userId` | Update existing order for date using `{ thaliIds, extraItems, date? }`; returns `404` if none exists. |
-| `DELETE` | `/api/orders/:userId?date=YYYY-MM-DD` | Soft-delete order (`deletedAt` set); returns `404` if missing/already deleted and `204` on success. |
-| `GET` | `/api/orders/:userId?date=YYYY-MM-DD` | Get order for user/date (defaults to today if omitted), always returning merged `thaliIds`. |
-| `GET` | `/api/light-bill?year=YYYY` | List light-bill periods overlapping that calendar year (`fromMonthKey` / `toMonthKey` inclusive, `amount`). |
-| `PUT` | `/api/light-bill` | Upsert period `{ fromMonthKey, toMonthKey, amount }` (`YYYY-MM` keys, `from` ≤ `to`). |
+| `POST` | `/api/auth/register` | Register user with `{ name, phone, email, address?, username, password }`. |
+| `POST` | `/api/auth/login` | Login with `{ username, password }`; returns `{ token, user }`. |
+| `POST` | `/api/auth/logout` | Revokes current session by incrementing `tokenVersion`; requires auth token. |
 
-## Data model and rules
+### Users
 
-- **Users collection (`users`):** `name`, `phone`, `address`, `createdAt`.
-- **Orders collection (`orders`):**
-  - `dateKey` is a `YYYY-MM-DD` string used as calendar-date key.
-  - Uniqueness behavior is one order per user per day (`userId + dateKey` upsert semantics).
-  - Delete behavior is soft delete (`deletedAt`), hidden from lists/single GET until saved again.
-- **Thali selections:**
-  - `thaliIds` is an unbounded array of integers `1` to `5`.
-  - Total thali amount is the sum of selected menu prices (duplicates allowed).
-  - Legacy docs with single `thaliId` are merged into `thaliIds` on read.
-- **Date format rule:**
-  - API and `<input type="date">` use `YYYY-MM-DD`.
-  - UI display uses `DD-MM-YYYY`.
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/users` | Create user (protected). |
+| `GET` | `/api/users` | List users (protected). |
+| `GET` | `/api/users/:id` | Get user by id (protected). |
 
-## Prerequisites
+### Orders
 
-- Node.js 18+
-- MongoDB reachable through `MONGODB_URI` (local, Docker, or Atlas)
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/orders/preview` | Calculate total only (protected). |
+| `POST` | `/api/orders` | Save/replace order for authenticated user and date (protected). |
+| `PUT` | `/api/orders/:userId` | Update existing order; only same authenticated user allowed. |
+| `GET` | `/api/orders/:userId?date=YYYY-MM-DD` | Fetch single order; only same authenticated user allowed. |
+| `DELETE` | `/api/orders/:userId?date=YYYY-MM-DD` | Soft-delete order; only same authenticated user allowed. |
+| `GET` | `/api/orders?from=&to=&userId=` | History/invoice query endpoint (protected). |
 
-## Configuration
+### Utilities
 
-### Server
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/housekeeper` | Housekeeper records (protected). |
+| `PUT` | `/api/housekeeper` | Upsert housekeeper records (protected). |
+| `GET` | `/api/light-bill?year=YYYY` | Get light-bill periods (protected). |
+| `PUT` | `/api/light-bill` | Upsert light-bill period (protected). |
+| `GET` | `/health` | Health check. |
 
-Copy [`server/.env.example`](server/.env.example) to `server/.env`.
+## Data compatibility and migration (no data loss)
 
-- `MONGODB_URI` (**required**): local example `mongodb://127.0.0.1:27017/tiffin`; for Atlas, use a URI ending with `/tiffin`.
-- `PORT` (optional): defaults to `5000`.
-- `CORS_ORIGINS` (optional): comma-separated full origins (no trailing slash) for custom domains, for example `https://app.example.com`.
+When auth is added to an existing production DB, existing business data (`orders`, invoice-derived history, utility data) is preserved. Migration only backfills auth fields on `users`.
 
-Default allowed origins include:
+### Migration runbook
 
-- `localhost` and `127.0.0.1` (any port)
-- `https://*.onrender.com`
-- `https://*.vercel.app`
+1. **Take full DB backup** (required).
+2. **Restore backup to staging clone** and dry-run full migration there.
+3. **Deploy code with auth fields/routes** to staging.
+4. **Run user bootstrap script** in staging:
+   ```bash
+   cd server
+   AUTH_TEMP_PASSWORD=1234 npm run auth:bootstrap-users
+   ```
+5. Validate in staging:
+   - users now have `username`, `passwordHash`, and `tokenVersion`.
+   - no data loss in `orders` and reporting pages.
+   - register/login/logout flow works.
+6. **Repeat in production** during maintenance window.
+7. Securely distribute temporary credentials from generated CSV and require password change policy.
 
-Atlas note: allow your client IP (or `0.0.0.0/0` for quick testing) in Network Access, and ensure DB user has read/write permissions.
+### What the bootstrap script does
 
-### Client
+- Finds users missing `username` or `passwordHash`.
+- Generates unique usernames.
+- Sets a hashed temporary password.
+- Initializes `tokenVersion` when missing.
+- Writes CSV report to `server/migration-reports/`.
 
-Copy [`client/.env.example`](client/.env.example) to `client/.env` if overrides are needed.
+## Environment configuration
 
-- `VITE_API_URL`: API origin (default in code is `http://localhost:5000`). For deployed API, set this before `npm run build`.
+### Server (`server/.env`)
 
-## Run locally
+- `MONGODB_URI` (required)
+- `JWT_SECRET` (required)
+- `PORT` (optional, default `5000`)
+- `AUTH_TEMP_PASSWORD` (optional, used by migration script; min 4 chars)
 
-Terminal 1 (API):
+### Client (`client/.env`)
+
+- `VITE_API_URL` (e.g. `http://localhost:5000`)
+
+## Local development
+
+### API
 
 ```bash
 cd server
@@ -136,15 +108,7 @@ npm install
 npm run dev
 ```
 
-`npm run dev` runs TypeScript via `tsx watch`. For production:
-
-```bash
-cd server
-npm run build
-npm start
-```
-
-Terminal 2 (frontend):
+### Frontend
 
 ```bash
 cd client
@@ -152,8 +116,9 @@ npm install
 npm run dev
 ```
 
-Open the Vite URL (usually `http://localhost:5173`).
+## Production build commands
 
-## Current limitation
-
-- Authentication/authorization is not implemented in this version.
+```bash
+cd server && npm run build && npm start
+cd client && npm run build
+```

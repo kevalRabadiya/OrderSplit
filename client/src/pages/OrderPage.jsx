@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Loader from "../components/Loader.jsx";
 import {
   createOrder,
   deleteOrder,
   getOrderForUser,
-  getUsers,
   previewOrder,
   updateOrder,
 } from "../api";
 import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
-
-const LAST_USER_KEY = "tiffin_lastUserId";
 
 function newRowId() {
   return globalThis.crypto?.randomUUID?.() ?? `r-${Date.now()}-${Math.random()}`;
@@ -57,13 +54,11 @@ function toNonNegIntField(v) {
   return n;
 }
 
-export default function OrderPage() {
+export default function OrderPage({ authUser }) {
   const [searchParams] = useSearchParams();
-  const paramUserId = searchParams.get("userId");
   const paramDate = searchParams.get("date");
+  const currentUserId = authUser?._id || "";
 
-  const [users, setUsers] = useState([]);
-  const [userId, setUserId] = useState("");
   const [thaliRows, setThaliRows] = useState(emptyThaliRows);
   const [roti, setRoti] = useState(0);
   const [sabji1, setSabji1] = useState("");
@@ -86,7 +81,6 @@ export default function OrderPage() {
   const [savedMessage, setSavedMessage] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [actionError, setActionError] = useState(null);
-  const [loadingUsers, setLoadingUsers] = useState(true);
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [busy, setBusy] = useState(false);
   const [hasSavedOrder, setHasSavedOrder] = useState(false);
@@ -139,7 +133,7 @@ export default function OrderPage() {
 
   /** Keep total in sync when thalis / extras change (preview uses latest payload). */
   useEffect(() => {
-    if (loadingUsers || loadingOrder) return;
+    if (loadingOrder) return;
     const id = setTimeout(() => {
       const g = ++previewGenRef.current;
       previewOrder(payloadRef.current)
@@ -153,47 +147,7 @@ export default function OrderPage() {
         });
     }, 300);
     return () => clearTimeout(id);
-  }, [payloadBase, loadingUsers, loadingOrder]);
-
-  useEffect(() => {
-    let cancelled = false;
-    getUsers()
-      .then((list) => {
-        if (cancelled) return;
-        setUsers(list);
-        const fromUrl = paramUserId && list.some((u) => u._id === paramUserId);
-        const stored =
-          typeof localStorage !== "undefined"
-            ? localStorage.getItem(LAST_USER_KEY)
-            : null;
-        const fromStore = stored && list.some((u) => u._id === stored);
-        const initial =
-          (fromUrl && paramUserId) ||
-          (fromStore && stored) ||
-          (list[0] && list[0]._id) ||
-          "";
-        setUserId(initial);
-      })
-      .catch((e) => {
-        if (!cancelled) setLoadError(e.message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingUsers(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [paramUserId]);
-
-  useEffect(() => {
-    if (userId) {
-      try {
-        localStorage.setItem(LAST_USER_KEY, userId);
-      } catch {
-        /* ignore */
-      }
-    }
-  }, [userId]);
+  }, [payloadBase, loadingOrder]);
 
   const applyOrderToForm = useCallback((order) => {
     if (!order) return;
@@ -228,14 +182,17 @@ export default function OrderPage() {
   }, []);
 
   useEffect(() => {
-    if (!userId || loadingUsers) return;
+    if (!currentUserId) {
+      setLoadError("Missing logged-in user. Please login again.");
+      return;
+    }
     let cancelled = false;
     setActionError(null);
     setSavedMessage(null);
     setLoadingOrder(true);
     (async () => {
       try {
-        const order = await getOrderForUser(userId, orderDate);
+        const order = await getOrderForUser(currentUserId, orderDate);
         if (cancelled) return;
         applyOrderToForm(order);
         setSavedMessage("Loaded saved order for this date.");
@@ -261,7 +218,7 @@ export default function OrderPage() {
     return () => {
       cancelled = true;
     };
-  }, [userId, orderDate, loadingUsers, applyOrderToForm]);
+  }, [currentUserId, orderDate, applyOrderToForm]);
 
   function addThaliRow() {
     setThaliRows((prev) => [
@@ -302,8 +259,8 @@ export default function OrderPage() {
 
   async function onSave(e) {
     e.preventDefault();
-    if (!userId) {
-      setActionError("Select a user.");
+    if (!currentUserId) {
+      setActionError("Missing logged-in user.");
       return;
     }
     setActionError(null);
@@ -311,7 +268,7 @@ export default function OrderPage() {
     setBusy(true);
     try {
       const { totalAmount, order } = await createOrder({
-        userId,
+        userId: currentUserId,
         date: orderDate,
         ...payloadRef.current,
       });
@@ -327,15 +284,15 @@ export default function OrderPage() {
   }
 
   async function onUpdate() {
-    if (!userId) {
-      setActionError("Select a user.");
+    if (!currentUserId) {
+      setActionError("Missing logged-in user.");
       return;
     }
     setActionError(null);
     setSavedMessage(null);
     setBusy(true);
     try {
-      const { totalAmount, order } = await updateOrder(userId, {
+      const { totalAmount, order } = await updateOrder(currentUserId, {
         date: orderDate,
         ...payloadRef.current,
       });
@@ -351,7 +308,7 @@ export default function OrderPage() {
   }
 
   async function onDelete() {
-    if (!userId || !hasSavedOrder) return;
+    if (!currentUserId || !hasSavedOrder) return;
     if (
       !window.confirm(
         "Remove this order for the selected date? It will be hidden (soft-deleted) and can be replaced by saving a new order for the same day."
@@ -363,7 +320,7 @@ export default function OrderPage() {
     setSavedMessage(null);
     setBusy(true);
     try {
-      await deleteOrder(userId, orderDate);
+      await deleteOrder(currentUserId, orderDate);
       setThaliRows(emptyThaliRows());
       setRoti(0);
       setSabji1("");
@@ -407,40 +364,21 @@ export default function OrderPage() {
             from the menu.
           </p>
         </div>
-        <Link to="/users" className="btn btn-ghost">
-          Users
-        </Link>
+        {/* <span className="muted small">
+          User: {authUser?.username || authUser?.name || "User"}
+        </span> */}
       </div>
-
-      {loadingUsers ? (
-        <div className="loading-block">
-          <Loader label="Loading users…" />
-        </div>
-      ) : null}
-
-      {!loadingUsers ? (
-      <form className="form order-form order-form--enhanced card-elevated glass-surface" onSubmit={onCalculate}>
+      <form
+        className="form order-form order-form--enhanced card-elevated glass-surface"
+        onSubmit={onCalculate}
+      >
         <section className="form-section order-section order-section--meta glass-surface">
-          <h2 className="form-section-title">Who &amp; when</h2>
+          <h2 className="form-section-title">When</h2>
+          {/* <div className="order-current-user-card" role="status" aria-live="polite"> */}
+            {/* <span className="small muted">Current user</span>
+            <strong>{authUser?.username || authUser?.name || "User"}</strong> */}
+          {/* </div> */}
           <div className="grid-2">
-            <label>
-              User
-              <select
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                disabled={loadingUsers || users.length === 0}
-              >
-                {users.length === 0 ? (
-                  <option value="">No users — add one first</option>
-                ) : (
-                  users.map((u) => (
-                    <option key={u._id} value={u._id}>
-                      {u.name} ({u.phone})
-                    </option>
-                  ))
-                )}
-              </select>
-            </label>
             <label>
               Date
               <input
@@ -620,18 +558,20 @@ export default function OrderPage() {
         </div>
 
         <div className="actions order-actions">
-          <button
-            type="submit"
-            className="btn primary"
-            disabled={actionsDisabled}
-          >
-            Calculate
-          </button>
+          {previewTotal == null ? (
+            <button
+              type="submit"
+              className="btn primary"
+              disabled={actionsDisabled}
+            >
+              Calculate
+            </button>
+          ) : null}
           <button
             type="button"
-            className="btn"
+            className="btn primary"
             onClick={onSave}
-            disabled={actionsDisabled || !userId}
+            disabled={actionsDisabled || !currentUserId}
           >
             {hasSavedOrder ? "Save order (replace)" : "Save order"}
           </button>
@@ -639,7 +579,7 @@ export default function OrderPage() {
             type="button"
             className="btn"
             onClick={onUpdate}
-            disabled={actionsDisabled || !userId || !hasSavedOrder}
+            disabled={actionsDisabled || !currentUserId || !hasSavedOrder}
           >
             Update order
           </button>
@@ -647,13 +587,12 @@ export default function OrderPage() {
             type="button"
             className="btn danger"
             onClick={onDelete}
-            disabled={actionsDisabled || !userId || !hasSavedOrder}
+            disabled={actionsDisabled || !currentUserId || !hasSavedOrder}
           >
             Delete order
           </button>
         </div>
       </form>
-      ) : null}
     </div>
   );
 }

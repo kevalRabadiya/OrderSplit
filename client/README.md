@@ -1,16 +1,42 @@
-# React + Vite
+# Client App (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend for Flat Expense Management.
 
-Currently, two official plugins are available:
+## Features in client
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Public auth routes: `/login`, `/register`.
+- Protected app routes for home, order, history, invoice, utilities.
+- Auth token + user persistence in `localStorage`.
+- Auth-aware navbar behavior.
+- Theme toggle (light/dark).
 
-## React Compiler
+## Environment
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Create `client/.env` if needed:
 
-## Expanding the ESLint configuration
+```bash
+VITE_API_URL=http://localhost:5000
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+If not set, code defaults to localhost API.
+
+## Run locally
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+## Quality checks
+
+```bash
+npm run lint
+npm run build
+```
+
+## Auth integration notes
+
+- API calls automatically include `Authorization: Bearer <token>` when token is stored.
+- On login/register success, token and user are saved, and app redirects to protected routes.
+- On logout, token/user are cleared and session is revoked server-side.

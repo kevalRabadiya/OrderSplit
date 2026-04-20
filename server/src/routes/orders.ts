@@ -1,7 +1,9 @@
 import { Router } from "express";
 import type { FilterQuery } from "mongoose";
 import mongoose from "mongoose";
+import type { AuthenticatedRequest } from "../auth.js";
 import { HttpError, isHttpError } from "../httpError.js";
+import { requireAuth } from "../auth.js";
 import { User } from "../models/User.js";
 import { Order } from "../models/Order.js";
 import {
@@ -12,6 +14,7 @@ import {
 } from "../pricing.js";
 
 export const ordersRouter = Router();
+ordersRouter.use(requireAuth);
 
 type OrderBody = Record<string, unknown>;
 
@@ -150,6 +153,10 @@ function buildOrderUpdate(
   };
 }
 
+function authUserId(req: AuthenticatedRequest) {
+  return req.auth?.userId ?? "";
+}
+
 ordersRouter.post("/preview", async (req, res, next) => {
   try {
     const body = req.body as OrderBody;
@@ -181,17 +188,16 @@ ordersRouter.post("/preview", async (req, res, next) => {
 
 ordersRouter.post("/", async (req, res, next) => {
   try {
-    const body = req.body as OrderBody & { userId?: unknown };
-    const { userId } = body;
-    if (!userId || !mongoose.isValidObjectId(String(userId))) {
-      return res.status(400).json({ error: "valid userId is required" });
+    const userId = authUserId(req as AuthenticatedRequest);
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
     const user = await User.findById(userId);
     if (!user) return res.status(400).json({ error: "User not found" });
 
     let payload: ReturnType<typeof orderPayloadFromBody>;
     try {
-      payload = orderPayloadFromBody(body);
+      payload = orderPayloadFromBody(req.body as OrderBody);
     } catch (e) {
       if (isHttpError(e)) {
         return res.status(e.statusCode).json({ error: e.message });
@@ -201,7 +207,7 @@ ordersRouter.post("/", async (req, res, next) => {
 
     const order = await Order.findOneAndUpdate(
       { userId, dateKey: payload.dateKey },
-      buildOrderUpdate(String(userId), payload),
+      buildOrderUpdate(userId, payload),
       { new: true, upsert: true, runValidators: true }
     ).lean();
 
@@ -217,8 +223,12 @@ ordersRouter.post("/", async (req, res, next) => {
 ordersRouter.put("/:userId", async (req, res, next) => {
   try {
     const { userId } = req.params;
+    const authedUserId = authUserId(req as AuthenticatedRequest);
     if (!mongoose.isValidObjectId(String(userId))) {
       return res.status(400).json({ error: "invalid userId" });
+    }
+    if (authedUserId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
     }
     const user = await User.findById(userId);
     if (!user) return res.status(400).json({ error: "User not found" });
@@ -260,8 +270,12 @@ ordersRouter.put("/:userId", async (req, res, next) => {
 ordersRouter.delete("/:userId", async (req, res, next) => {
   try {
     const { userId } = req.params;
+    const authedUserId = authUserId(req as AuthenticatedRequest);
     if (!mongoose.isValidObjectId(String(userId))) {
       return res.status(400).json({ error: "invalid userId" });
+    }
+    if (authedUserId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
     }
     let dateKey: string;
     try {
@@ -379,8 +393,12 @@ ordersRouter.get("/", async (req, res, next) => {
 ordersRouter.get("/:userId", async (req, res, next) => {
   try {
     const { userId } = req.params;
+    const authedUserId = authUserId(req as AuthenticatedRequest);
     if (!mongoose.isValidObjectId(String(userId))) {
       return res.status(400).json({ error: "invalid userId" });
+    }
+    if (authedUserId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
     }
     let dateKey: string;
     try {

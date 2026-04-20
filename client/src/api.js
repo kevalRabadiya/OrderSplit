@@ -4,6 +4,8 @@ const SERVER_DOWN_PATH = "/server-down";
 const API_DOWN_EVENT = "api:server-down";
 const API_RECOVERED_EVENT = "api:server-recovered";
 const SERVER_DOWN_FLAG_KEY = "api_server_down";
+const AUTH_TOKEN_KEY = "auth_token";
+const AUTH_USER_KEY = "auth_user";
 let hasSignaledServerDown = false;
 
 function dispatchWindowEvent(name) {
@@ -56,7 +58,15 @@ async function handleJson(res) {
 
 async function request(path, options) {
   try {
-    const res = await fetch(`${API_BASE}${path}`, options);
+    const token = getAuthToken();
+    const headers = new Headers(options?.headers || {});
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+    });
     if (isServerUnavailableStatus(res.status)) {
       markServerDown();
     }
@@ -67,6 +77,62 @@ async function request(path, options) {
     }
     throw err;
   }
+}
+
+export function getAuthToken() {
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem(AUTH_TOKEN_KEY) || "";
+}
+
+export function setAuthToken(token) {
+  if (typeof window === "undefined") return;
+  if (token) {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
+}
+
+export function getStoredAuthUser() {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(AUTH_USER_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredAuthUser(user) {
+  if (typeof window === "undefined") return;
+  if (user) {
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(AUTH_USER_KEY);
+  }
+}
+
+export async function register(body) {
+  return request("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function login(body) {
+  return request("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function logout() {
+  return request("/api/auth/logout", {
+    method: "POST",
+  });
 }
 
 export function getUsers() {
