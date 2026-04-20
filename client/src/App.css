@@ -271,46 +271,90 @@
 .brand-greeting {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.38rem 0.72rem;
+  gap: 0.58rem;
+  padding: 0.38rem 0.78rem 0.38rem 0.42rem;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--glass-border));
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--glass-border));
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent-muted) 78%, var(--glass-bg)),
-    color-mix(in srgb, var(--glass-bg-strong) 90%, transparent)
+    color-mix(in srgb, var(--accent-muted) 72%, var(--glass-bg)),
+    color-mix(in srgb, var(--glass-bg-strong) 94%, transparent)
   );
   box-shadow:
-    0 8px 20px color-mix(in srgb, var(--accent) 18%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #ffffff 28%, transparent);
+    0 10px 26px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 2px 10px color-mix(in srgb, var(--text-h) 9%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 35%, transparent);
   transition:
     transform var(--motion-fast) var(--motion-ease),
     box-shadow var(--motion-base) var(--motion-ease),
-    border-color var(--motion-fast) var(--motion-ease);
+    border-color var(--motion-fast) var(--motion-ease),
+    background var(--motion-base) var(--motion-ease);
+}
+
+.brand-greeting-avatar {
+  width: 1.72rem;
+  height: 1.72rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-h);
+  border: 1px solid color-mix(in srgb, var(--accent) 44%, var(--glass-border));
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent) 34%, var(--surface)),
+    color-mix(in srgb, var(--accent-muted) 88%, var(--glass-bg))
+  );
+  box-shadow:
+    0 3px 10px color-mix(in srgb, var(--accent) 26%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 42%, transparent);
+}
+
+.brand-greeting-text {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.06rem;
+  line-height: 1.1;
 }
 
 .brand-greeting-label {
-  font-size: 0.76rem;
+  font-size: 0.63rem;
   font-weight: 600;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--text) 88%, transparent);
+  color: color-mix(in srgb, var(--text) 72%, transparent);
 }
 
 .brand-greeting strong {
-  font-size: 1rem;
+  font-size: 1.03rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   color: var(--text-h);
-  text-shadow: 0 1px 12px color-mix(in srgb, var(--accent) 16%, transparent);
+  text-shadow: 0 1px 14px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .brand:hover .brand-greeting {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border));
+  transform: translateY(-1px) scale(1.01);
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--glass-border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-muted) 66%, var(--glass-bg)),
+    color-mix(in srgb, var(--glass-bg-strong) 95%, transparent)
+  );
   box-shadow:
-    0 12px 26px color-mix(in srgb, var(--accent) 22%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #ffffff 32%, transparent);
+    0 14px 32px color-mix(in srgb, var(--accent) 25%, transparent),
+    0 4px 14px color-mix(in srgb, var(--text-h) 11%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 44%, transparent);
+}
+
+.brand:hover .brand-greeting-avatar {
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--glass-border));
+  box-shadow:
+    0 6px 14px color-mix(in srgb, var(--accent) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 50%, transparent);
 }
 
 .nav-links {
@@ -2642,17 +2686,23 @@
   }
 
   .brand-greeting {
-    padding: 0.34rem 0.62rem;
-    gap: 0.34rem;
+    padding: 0.3rem 0.56rem 0.3rem 0.36rem;
+    gap: 0.42rem;
+  }
+
+  .brand-greeting-avatar {
+    width: 1.48rem;
+    height: 1.48rem;
+    font-size: 0.62rem;
   }
 
   .brand-greeting-label {
-    font-size: 0.66rem;
-    letter-spacing: 0.06em;
+    font-size: 0.56rem;
+    letter-spacing: 0.09em;
   }
 
   .brand-greeting strong {
-    font-size: 0.9rem;
+    font-size: 0.86rem;
   }
 
   .nav-tools {

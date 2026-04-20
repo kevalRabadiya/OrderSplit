@@ -264,9 +264,20 @@ function formatGreetingName(authUser) {
     .join(" ");
 }
 
+function getNameInitials(name) {
+  return String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
+
 function Layout({ children, isAuthenticated, authUser, onLogout }) {
   const currentYear = new Date().getFullYear();
   const greetingName = formatGreetingName(authUser);
+  const greetingInitials = getNameInitials(greetingName) || "U";
 
   return (
     <div className="app app-glass">
@@ -274,8 +285,13 @@ function Layout({ children, isAuthenticated, authUser, onLogout }) {
         <Link to={isAuthenticated ? "/" : "/login"} className="brand">
           {isAuthenticated ? (
             <span className="brand-greeting">
-              <span className="brand-greeting-label">Hello,</span>
-              <strong>{greetingName}</strong>
+              <span className="brand-greeting-avatar" aria-hidden>
+                {greetingInitials}
+              </span>
+              <span className="brand-greeting-text">
+                <span className="brand-greeting-label">Welcome back</span>
+                <strong>{greetingName}</strong>
+              </span>
             </span>
           ) : (
             "Flat Expense"
