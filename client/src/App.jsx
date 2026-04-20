@@ -75,15 +75,23 @@ function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   return (
-    <button
-      type="button"
-      className="theme-toggle"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+    <label
+      className="theme-switch"
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       title={isDark ? "Light mode" : "Dark mode"}
     >
-      {isDark ? <SunIcon /> : <MoonIcon />}
-    </button>
+      <SunIcon />
+      <input
+        type="checkbox"
+        checked={isDark}
+        onChange={() => setTheme(isDark ? "light" : "dark")}
+        aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      />
+      <span className="theme-switch-track" aria-hidden>
+        <span className="theme-switch-thumb" />
+      </span>
+      <MoonIcon />
+    </label>
   );
 }
 
@@ -221,12 +229,17 @@ function ProfileMenu({ authUser, onLogout }) {
           </div>
           <button
             type="button"
-            className="profile-menu-item"
+            className="profile-menu-item profile-menu-item-theme"
             onClick={() => setTheme(isDark ? "light" : "dark")}
             aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
           >
             <span>{isDark ? "Light mode" : "Dark mode"}</span>
-            {isDark ? <SunIcon /> : <MoonIcon />}
+            <span className="profile-theme-switch" aria-hidden>
+              <span className="profile-theme-switch-track">
+                <span className="profile-theme-switch-thumb" />
+              </span>
+              {isDark ? <MoonIcon /> : <SunIcon />}
+            </span>
           </button>
           <button
             type="button"
@@ -241,14 +254,32 @@ function ProfileMenu({ authUser, onLogout }) {
   );
 }
 
+function formatGreetingName(authUser) {
+  const rawName = authUser?.name || authUser?.username || "User";
+  return String(rawName)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
 function Layout({ children, isAuthenticated, authUser, onLogout }) {
   const currentYear = new Date().getFullYear();
+  const greetingName = formatGreetingName(authUser);
 
   return (
     <div className="app app-glass">
       <header className={`nav nav-glass ${isAuthenticated ? "" : "nav--minimal"}`}>
         <Link to={isAuthenticated ? "/" : "/login"} className="brand">
-          Flat Expense
+          {isAuthenticated ? (
+            <span className="brand-greeting">
+              <span className="brand-greeting-label">Hello,</span>
+              <strong>{greetingName}</strong>
+            </span>
+          ) : (
+            "Flat Expense"
+          )}
         </Link>
         <div className={`nav-tools ${isAuthenticated ? "" : "nav-tools--minimal"}`}>
           {isAuthenticated ? (

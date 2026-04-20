@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatThaliQuantities } from "../utils/thaliFormat.js";
-import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
+import { formatDateDDMMYYYY, formatDateTimeIST } from "../utils/dateFormat.js";
 import { formatOrderExtras } from "../utils/formatOrderExtras.js";
 import {
   aggregateHistorySummary,
@@ -226,7 +226,7 @@ export default function HistoryPage() {
               <table className="history-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
+                    <th>Date &amp; Time (IST)</th>
                     <th>User</th>
                     <th>Thali (qty)</th>
                     <th>Extras</th>
@@ -243,7 +243,9 @@ export default function HistoryPage() {
                           : `${row.userId}-${row.dateKey}`
                       }
                     >
-                      <td>{formatDateDDMMYYYY(row.dateKey)}</td>
+                      <td>
+                        <strong>{formatDateTimeIST(row.createdAt)}</strong>
+                      </td>
                       <td>
                         {row.user ? (
                           <>
@@ -274,6 +276,7 @@ export default function HistoryPage() {
                             onClick={() => {
                               setDescriptionModal({
                                 dateKey: row.dateKey,
+                                createdAt: row.createdAt,
                                 userName: row.user?.name || "User",
                                 userPhone: row.user?.phone || "",
                                 description: row.description,
@@ -527,7 +530,8 @@ export default function HistoryPage() {
                   {descriptionModal.userPhone
                     ? ` (${descriptionModal.userPhone})`
                     : ""}{" "}
-                  · {formatDateDDMMYYYY(descriptionModal.dateKey)}
+                  · {formatDateDDMMYYYY(descriptionModal.dateKey)} ·{" "}
+                  {formatDateTimeIST(descriptionModal.createdAt)}
                 </p>
               </div>
               <button
