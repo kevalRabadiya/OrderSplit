@@ -42,6 +42,7 @@ export default function InvoicePage({ authUser }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [descriptionModal, setDescriptionModal] = useState(null);
 
   const { from, to } = useMemo(() => monthToDateRange(month), [month]);
 
@@ -100,6 +101,17 @@ export default function InvoicePage({ authUser }) {
     };
   }, [from, to]);
 
+  useEffect(() => {
+    if (!descriptionModal) return undefined;
+    function onKeyDown(e) {
+      if (e.key === "Escape") {
+        setDescriptionModal(null);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [descriptionModal]);
+
   const split = useMemo(() => computeEqualSplitByDay(rows), [rows]);
 
   function formatAggregatedExtrasForInvoice(dayRows) {
@@ -116,6 +128,16 @@ export default function InvoicePage({ authUser }) {
     if (dalUnits > 0) parts.push(`Dal-rice ${dalUnits}`);
     if (s.riceTotal > 0) parts.push(`Rice ${s.riceTotal}`);
     return parts.length ? parts.join(", ") : "—";
+  }
+
+  function formatAggregatedDescriptionForInvoice(dayRows) {
+    const parts = dayRows
+      .map((r) =>
+        typeof r?.description === "string" ? r.description.trim() : ""
+      )
+      .filter(Boolean);
+    if (!parts.length) return "—";
+    return parts.join(" | ");
   }
 
   const grouped = useMemo(() => {
@@ -288,6 +310,7 @@ export default function InvoicePage({ authUser }) {
                       <th>Date &amp; Time (IST)</th>
                       <th>Thali (qty)</th>
                       <th>Extras</th>
+                      <th>Description</th>
                       <th className="history-col-total">Original</th>
                       <th className="history-col-total">Optimized share</th>
                     </tr>
@@ -299,6 +322,9 @@ export default function InvoicePage({ authUser }) {
                         formatThaliSummaryLine(s.thaliCounts) ||
                         formatThaliQuantities([]);
                       const extrasLine = formatAggregatedExtrasForInvoice(d.dayRows);
+                      const descriptionLine = formatAggregatedDescriptionForInvoice(
+                        d.dayRows
+                      );
                       const latestCreatedAt = d.dayRows.reduce((latest, r) => {
                         const ts = Date.parse(r?.createdAt || "");
                         if (!Number.isFinite(ts)) return latest;
@@ -316,6 +342,34 @@ export default function InvoicePage({ authUser }) {
                           </td>
                           <td className="history-cell-mono">{thaliLine || "—"}</td>
                           <td className="history-cell-extras">{extrasLine}</td>
+                          <td>
+                            {descriptionLine !== "—" ? (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-ghost history-desc-btn"
+                                aria-label="Show description"
+                                title="Show description"
+                                onClick={() => {
+                                  setDescriptionModal({
+                                    dateKey: d.dateKey,
+                                    createdAt:
+                                      latestCreatedAt != null
+                                        ? new Date(latestCreatedAt)
+                                        : null,
+                                    userName: g.user?.name || "User",
+                                    userPhone: g.user?.phone || "",
+                                    description: descriptionLine,
+                                  });
+                                }}
+                              >
+                                <span className="history-desc-icon" aria-hidden="true">
+                                  i
+                                </span>
+                              </button>
+                            ) : (
+                              <span className="muted">—</span>
+                            )}
+                          </td>
                           <td className="history-col-total">
                             <strong>₹{d.originalTotal}</strong>
                           </td>
@@ -349,6 +403,50 @@ export default function InvoicePage({ authUser }) {
           </div>
         </>
       )}
+      {descriptionModal ? (
+        <div
+          className="history-desc-modal-backdrop"
+          role="presentation"
+          onClick={() => setDescriptionModal(null)}
+        >
+          <div
+            className="history-desc-modal card-elevated glass-surface"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Order description"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="history-desc-modal-head">
+              <div className="history-desc-modal-meta">
+                <p className="eyebrow mb-0">Order Note</p>
+                <h3 className="form-section-title mb-0">Description</h3>
+                <p className="small muted mb-0 history-desc-modal-sub">
+                  {descriptionModal.userName}
+                  {descriptionModal.userPhone
+                    ? ` (${descriptionModal.userPhone})`
+                    : ""}{" "}
+                  · {formatDateDDMMYYYY(descriptionModal.dateKey)} ·{" "}
+                  {descriptionModal.createdAt
+                    ? formatDateTimeIST(descriptionModal.createdAt)
+                    : "—"}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-sm btn-ghost history-desc-close-btn"
+                onClick={() => setDescriptionModal(null)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="history-desc-modal-body-wrap">
+              <p className="history-desc-modal-body mb-0">
+                {descriptionModal.description}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
