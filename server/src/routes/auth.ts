@@ -129,3 +129,49 @@ authRouter.post("/logout", requireAuth, async (req, res, next) => {
     next(e);
   }
 });
+
+authRouter.post("/change-password", requireAuth, async (req, res, next) => {
+  try {
+    const userId = (req as AuthenticatedRequest).auth?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { currentPassword, newPassword } = req.body as {
+      currentPassword?: unknown;
+      newPassword?: unknown;
+    };
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        error: "currentPassword and newPassword are required",
+      });
+    }
+
+    const currentPasswordValue = String(currentPassword);
+    const newPasswordValue = String(newPassword);
+    if (newPasswordValue.length < 4) {
+      return res.status(400).json({ error: "password must be at least 4 characters" });
+    }
+    if (currentPasswordValue === newPasswordValue) {
+      return res.status(400).json({ error: "new password must be different" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const isMatch = await comparePassword(currentPasswordValue, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    user.passwordHash = await hashPassword(newPasswordValue);
+    await user.save();
+
+    res.status(200).json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});

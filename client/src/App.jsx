@@ -19,6 +19,7 @@ import LightBillPage from "./pages/LightBillPage.jsx";
 import ServerDownPage from "./pages/ServerDownPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
+import ChangePasswordPage from "./pages/ChangePasswordPage.jsx";
 import {
   API_DOWN_EVENT,
   SERVER_DOWN_PATH,
@@ -188,6 +189,13 @@ function ProfileMenu({ authUser, onLogout }) {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const username = authUser?.username || authUser?.name || "User";
+  const initials = String(username)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((chunk) => chunk.charAt(0).toUpperCase())
+    .join("");
 
   useEffect(() => {
     function onDocClick(e) {
@@ -219,7 +227,9 @@ function ProfileMenu({ authUser, onLogout }) {
         aria-label="Open profile menu"
         onClick={() => setOpen((v) => !v)}
       >
-        <ProfileIcon />
+        <span className="profile-trigger-avatar" aria-hidden>
+          {initials || <ProfileIcon />}
+        </span>
       </button>
       {open ? (
         <div className="profile-dropdown" role="menu" aria-label="Profile">
@@ -227,6 +237,16 @@ function ProfileMenu({ authUser, onLogout }) {
             <span className="small muted">Signed in as</span>
             <strong>{username}</strong>
           </div>
+          <NavLink
+            to="/change-password"
+            className="profile-menu-item"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+            }}
+          >
+            Change password
+          </NavLink>
           <button
             type="button"
             className="profile-menu-item profile-menu-item-theme"
@@ -438,7 +458,7 @@ export default function App() {
           path="/invoice"
           element={
             <RequireAuth isAuthenticated={isAuthenticated}>
-              <InvoicePage />
+              <InvoicePage authUser={authUser} />
             </RequireAuth>
           }
         />
@@ -463,6 +483,14 @@ export default function App() {
           element={
             <RequireAuth isAuthenticated={isAuthenticated}>
               <OrderPage authUser={authUser} />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            <RequireAuth isAuthenticated={isAuthenticated}>
+              <ChangePasswordPage />
             </RequireAuth>
           }
         />

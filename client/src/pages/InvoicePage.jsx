@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Loader from "../components/Loader.jsx";
 import { getOrdersHistory, getUsers } from "../api";
 import { formatThaliQuantities } from "../utils/thaliFormat.js";
-import { formatDateDDMMYYYY } from "../utils/dateFormat.js";
+import { formatDateDDMMYYYY, formatDateTimeIST } from "../utils/dateFormat.js";
 import { aggregateHistorySummary, formatThaliSummaryLine } from "../utils/aggregateHistorySummary.js";
 import { computeEqualSplitByDay } from "../utils/dailyOptimization.js";
 
@@ -32,9 +32,9 @@ function monthToDateRange(ym) {
   return { from, to };
 }
 
-export default function InvoicePage() {
+export default function InvoicePage({ authUser }) {
   const [month, setMonth] = useState(currentMonthValue);
-  const [filterUserId, setFilterUserId] = useState("");
+  const [filterUserId, setFilterUserId] = useState(() => String(authUser?._id || ""));
   const [users, setUsers] = useState([]);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +57,11 @@ export default function InvoicePage() {
   }, []);
 
   useEffect(() => {
+    if (filterUserId || !authUser?._id) return;
+    setFilterUserId(String(authUser._id));
+  }, [authUser?._id, filterUserId]);
+
+  useEffect(() => {
     let cancelled = false;
   
     const fetchData = async () => {
@@ -67,6 +72,7 @@ export default function InvoicePage() {
         const data = await getOrdersHistory({
           from,
           to,
+          userId: filterUserId || undefined,
         });
   
         if (!cancelled) {
@@ -89,7 +95,7 @@ export default function InvoicePage() {
     return () => {
       cancelled = true;
     };
-  }, [from, to]);
+  }, [filterUserId, from, to]);
 
   const split = useMemo(() => computeEqualSplitByDay(rows), [rows]);
 
@@ -193,8 +199,8 @@ export default function InvoicePage() {
           <p className="eyebrow">Billing</p>
           <h1>Invoice</h1>
           <p className="lede muted">
-            Current month by default — optional <strong>user</strong> filter;
-            orders grouped per user with subtotals and a grand total.
+            Current month by default — starts with <strong>your</strong> invoices.
+            Use user filter to view anyone or all users.
           </p>
         </div>
         <Link to="/users" className="btn btn-ghost">
@@ -276,7 +282,7 @@ export default function InvoicePage() {
                 <table className="history-table invoice-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
+                      <th>Date &amp; Time (IST)</th>
                       <th>Thali (qty)</th>
                       <th>Extras</th>
                       <th className="history-col-total">Original</th>
@@ -290,9 +296,21 @@ export default function InvoicePage() {
                         formatThaliSummaryLine(s.thaliCounts) ||
                         formatThaliQuantities([]);
                       const extrasLine = formatAggregatedExtrasForInvoice(d.dayRows);
+                      const latestCreatedAt = d.dayRows.reduce((latest, r) => {
+                        const ts = Date.parse(r?.createdAt || "");
+                        if (!Number.isFinite(ts)) return latest;
+                        if (latest == null || ts > latest) return ts;
+                        return latest;
+                      }, null);
                       return (
                         <tr key={`${g.userId}-${d.dateKey}`}>
-                          <td>{formatDateDDMMYYYY(d.dateKey)}</td>
+                          <td>
+                            <strong>
+                              {latestCreatedAt != null
+                                ? formatDateTimeIST(new Date(latestCreatedAt))
+                                : formatDateDDMMYYYY(d.dateKey)}
+                            </strong>
+                          </td>
                           <td className="history-cell-mono">{thaliLine || "—"}</td>
                           <td className="history-cell-extras">{extrasLine}</td>
                           <td className="history-col-total">
