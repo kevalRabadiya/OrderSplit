@@ -76,7 +76,6 @@ export default function InvoicePage({ authUser }) {
         const data = await getOrdersHistory({
           from,
           to,
-          userId: filterUserId || undefined,
         });
   
         if (!cancelled) {
@@ -99,7 +98,7 @@ export default function InvoicePage({ authUser }) {
     return () => {
       cancelled = true;
     };
-  }, [filterUserId, from, to]);
+  }, [from, to]);
 
   const split = useMemo(() => computeEqualSplitByDay(rows), [rows]);
 
