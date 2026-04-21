@@ -14,26 +14,26 @@ html {
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
   --text: #57534e;
   --text-h: #1c1917;
-  --bg: #faf7f2;
-  --bg-elevated: #fffefb;
+  --bg: #f7f3ee;
+  --bg-elevated: #fffcf8;
   --surface: #ffffff;
-  --border: #e7e2dc;
+  --border: #e9e1d8;
   --accent: #c2410c;
   --accent-hover: #9a3412;
-  --accent-muted: rgba(194, 65, 12, 0.12);
+  --accent-muted: rgba(194, 65, 12, 0.15);
   --error: #b91c1c;
   --success: #15803d;
   --btn-on-accent: #fffefb;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.06);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.08);
   --shadow-md:
-    0 4px 6px -1px rgba(28, 25, 23, 0.07),
-    0 2px 4px -2px rgba(28, 25, 23, 0.05);
+    0 6px 10px -2px rgba(28, 25, 23, 0.11),
+    0 2px 4px -2px rgba(28, 25, 23, 0.07);
   --shadow-lg:
-    0 20px 25px -5px rgba(28, 25, 23, 0.08),
-    0 8px 10px -6px rgba(28, 25, 23, 0.06);
+    0 28px 40px -12px rgba(28, 25, 23, 0.18),
+    0 10px 16px -10px rgba(28, 25, 23, 0.12);
   font: 16px/155% var(--font-sans);
   color: var(--text);
   background-color: var(--bg);
@@ -45,23 +45,23 @@ html {
   color-scheme: dark;
   --text: #b8b3ad;
   --text-h: #fafaf9;
-  --bg: #292524;
-  --bg-elevated: #3a3630;
-  --surface: #403c37;
-  --border: #57534e;
+  --bg: #24201d;
+  --bg-elevated: #34302b;
+  --surface: #3c3732;
+  --border: #5f5a55;
   --accent: #fb923c;
   --accent-hover: #fdba74;
-  --accent-muted: rgba(251, 146, 60, 0.15);
+  --accent-muted: rgba(251, 146, 60, 0.18);
   --error: #f87171;
   --success: #4ade80;
   --btn-on-accent: #292524;
-  --shadow-sm: 0 1px 2px rgba(12, 10, 9, 0.22);
+  --shadow-sm: 0 2px 4px rgba(12, 10, 9, 0.28);
   --shadow-md:
-    0 4px 6px -1px rgba(12, 10, 9, 0.28),
-    0 2px 4px -2px rgba(12, 10, 9, 0.2);
+    0 8px 14px -4px rgba(12, 10, 9, 0.34),
+    0 3px 6px -2px rgba(12, 10, 9, 0.24);
   --shadow-lg:
-    0 20px 25px -5px rgba(12, 10, 9, 0.32),
-    0 8px 10px -6px rgba(12, 10, 9, 0.24);
+    0 28px 42px -12px rgba(12, 10, 9, 0.46),
+    0 12px 18px -12px rgba(12, 10, 9, 0.34);
 }
 
 body {

@@ -135,6 +135,14 @@ export async function logout() {
   });
 }
 
+export async function changePassword(body) {
+  return request("/api/auth/change-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 export function getUsers() {
   return request("/api/users");
 }

@@ -84,13 +84,13 @@ export default function LoginPage({ isAuthenticated, onAuthChange }) {
   return (
     <div className="page auth-page">
       <div className="auth-shell">
-        <form className="form card-elevated auth-card" onSubmit={onSubmit}>
+        <form className="form card-elevated auth-card auth-card-login" onSubmit={onSubmit}>
           <div className="auth-card-head">
             <span className="auth-badge" aria-hidden>
               ✦
             </span>
             <h2 className="auth-card-title">Login</h2>
-            <p className="muted small mb-0">Use your username and password.</p>
+            <p className="muted small mb-0 auth-card-subtitle">Use your username and password.</p>
           </div>
 
           <label>

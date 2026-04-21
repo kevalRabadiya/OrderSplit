@@ -109,7 +109,9 @@ export default function RegisterPage({ isAuthenticated, onAuthChange }) {
               ✦
             </span>
             <h2 className="auth-card-title">Register</h2>
-            <p className="muted small mb-0">Create your profile and credentials.</p>
+            <p className="muted small mb-0 auth-card-subtitle">
+              Create your profile and credentials.
+            </p>
           </div>
           <label>
             Name
