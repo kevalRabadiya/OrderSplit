@@ -2099,6 +2099,10 @@
   overflow: visible;
 }
 
+.invoice-toolbar.glass-surface:hover {
+  transform: none;
+}
+
 .invoice-month-label {
   display: flex;
   flex-direction: column;
@@ -2137,6 +2141,10 @@
   background: var(--bg-elevated);
   color: var(--text-h);
   min-width: 11rem;
+  min-height: 2.75rem;
+  appearance: auto;
+  -webkit-appearance: auto;
+  touch-action: manipulation;
   transition:
     border-color var(--motion-fast) var(--motion-ease),
     box-shadow var(--motion-base) var(--motion-ease),
@@ -2947,6 +2955,11 @@
     width: 100%;
     min-width: 0;
     max-width: none;
+  }
+
+  .invoice-month-input:focus-visible,
+  .invoice-customer-select:focus-visible {
+    transform: none;
   }
 
   .history-filters {

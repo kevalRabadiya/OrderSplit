@@ -35,6 +35,9 @@ function monthToDateRange(ym) {
 export default function InvoicePage({ authUser }) {
   const [month, setMonth] = useState(currentMonthValue);
   const [filterUserId, setFilterUserId] = useState(() => String(authUser?._id || ""));
+  const [didInitFilterFromAuth, setDidInitFilterFromAuth] = useState(() =>
+    Boolean(authUser?._id)
+  );
   const [users, setUsers] = useState([]);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,9 +60,10 @@ export default function InvoicePage({ authUser }) {
   }, []);
 
   useEffect(() => {
-    if (filterUserId || !authUser?._id) return;
+    if (didInitFilterFromAuth || !authUser?._id) return;
     setFilterUserId(String(authUser._id));
-  }, [authUser?._id, filterUserId]);
+    setDidInitFilterFromAuth(true);
+  }, [authUser?._id, didInitFilterFromAuth]);
 
   useEffect(() => {
     let cancelled = false;

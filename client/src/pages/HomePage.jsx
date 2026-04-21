@@ -208,6 +208,7 @@ function useChartThemeColors() {
 
 export default function HomePage() {
   const chartColors = useChartThemeColors();
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
   const [chartMonth, setChartMonth] = useState(currentMonthValue);
   const [users, setUsers] = useState([]);
   const [monthOrders, setMonthOrders] = useState([]);
@@ -229,9 +230,18 @@ export default function HomePage() {
   const [lightError, setLightError] = useState(null);
 
   const range = useMemo(() => monthToDateRange(chartMonth), [chartMonth]);
+  const selectedYear = useMemo(() => {
+    const y = Number(String(chartMonth || "").slice(0, 4));
+    return Number.isFinite(y) ? y : currentYear;
+  }, [chartMonth, currentYear]);
   const today = useMemo(() => todayISO(), []);
   const lookbackFrom = useMemo(() => lookbackFromISO(120), []);
-  const currentYearFrom = useMemo(() => `${today.slice(0, 4)}-01-01`, [today]);
+  const yearlyRange = useMemo(() => {
+    const y = Number(selectedYear);
+    if (!Number.isFinite(y)) return { from: `${currentYear}-01-01`, to: today };
+    if (y >= currentYear) return { from: `${currentYear}-01-01`, to: today };
+    return { from: `${y}-01-01`, to: `${y}-12-31` };
+  }, [currentYear, selectedYear, today]);
 
   const stats = useMemo(
     () => aggregateMonthOrders(monthOrders, range.from, range.to),
@@ -297,14 +307,14 @@ export default function HomePage() {
   const housekeeperAmount = housekeeperDays * housekeeperRate;
 
   const housekeeperMonthlyChartData = useMemo(() => {
-    const year = Number(today.slice(0, 4));
+    const year = Number(selectedYear);
     const presentByMonth = new Map();
     for (const row of housekeeperYearRows) {
       if (!row?.present || typeof row?.dateKey !== "string") continue;
       const mk = row.dateKey.slice(0, 7);
       presentByMonth.set(mk, (presentByMonth.get(mk) || 0) + 1);
     }
-    const monthNow = Number(today.slice(5, 7));
+    const monthNow = year >= currentYear ? Number(today.slice(5, 7)) : 12;
     const out = [];
     for (let m = 1; m <= monthNow; m += 1) {
       const monthKey = `${year}-${String(m).padStart(2, "0")}`;
@@ -317,10 +327,10 @@ export default function HomePage() {
       });
     }
     return out;
-  }, [housekeeperRate, housekeeperYearRows, today]);
+  }, [currentYear, housekeeperRate, housekeeperYearRows, selectedYear, today]);
 
   const lightBillPeriodChartData = useMemo(() => {
-    const year = Number(today.slice(0, 4));
+    const year = Number(selectedYear);
     const out = [];
     for (const row of lightBillYearRows) {
       const fromM = row?.fromMonthKey;
@@ -339,7 +349,7 @@ export default function HomePage() {
     }
     out.sort((a, b) => a.periodKey.localeCompare(b.periodKey));
     return out;
-  }, [lightBillYearRows, today]);
+  }, [lightBillYearRows, selectedYear]);
 
   const topOptimizedUsers = useMemo(() => {
     const totals = new Map();
@@ -458,8 +468,8 @@ export default function HomePage() {
     (async () => {
       try {
         const housekeeperYearList = await getHousekeeperAttendance({
-          from: currentYearFrom,
-          to: today,
+          from: yearlyRange.from,
+          to: yearlyRange.to,
         });
         if (!cancelled) {
           setHousekeeperYearRows(
@@ -479,7 +489,7 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [currentYearFrom, today]);
+  }, [yearlyRange.from, yearlyRange.to]);
 
   useEffect(() => {
     let cancelled = false;
@@ -514,7 +524,7 @@ export default function HomePage() {
     let cancelled = false;
     setLightLoading(true);
     setLightError(null);
-    const year = Number(today.slice(0, 4));
+    const year = Number(selectedYear);
     (async () => {
       try {
         const lightRows = await getLightBillsForYear(year);
@@ -534,7 +544,7 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [today]);
+  }, [selectedYear]);
 
   const monthLabelShort = `${chartMonth.slice(5, 7)}/${chartMonth.slice(0, 4)}`;
   const rangeDisplay = `${formatDateDDMMYYYY(range.from)} – ${formatDateDDMMYYYY(range.to)}`;
@@ -837,7 +847,7 @@ export default function HomePage() {
       <div className="home-charts-row">
         <div className="card-elevated home-chart-card home-chart-card--span2 glass-surface">
           <h2 className="form-section-title home-chart-title">
-            HouseKeeper totalAmount (current year)
+            HouseKeeper totalAmount ({selectedYear})
           </h2>
           <div className="home-chart-inner">
             {hkYearLoading ? (
@@ -897,7 +907,7 @@ export default function HomePage() {
       <div className="home-charts-row">
         <div className="card-elevated home-chart-card home-chart-card--span2 glass-surface">
           <h2 className="form-section-title home-chart-title">
-            Light bill (current year)
+            Light bill ({selectedYear})
           </h2>
           <div className="home-chart-inner">
             {lightLoading ? (
