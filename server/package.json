@@ -7,22 +7,28 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
-    "auth:bootstrap-users": "tsx src/scripts/bootstrapAuthUsers.ts"
+    "auth:bootstrap-users": "tsx src/scripts/bootstrapAuthUsers.ts",
+    "mail:daily-report": "tsx src/scripts/sendDailyReportNow.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "hbs": "^4.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.7.0"
+    "mongoose": "^8.7.0",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.5"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/hbs": "^4.0.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.10.0",
+    "@types/nodemailer": "^8.0.0",
     "nodemon": "^3.1.7",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

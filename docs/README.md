@@ -14,11 +14,11 @@
 - `server/src/pricing.ts`
 
 ## Last updated
-- 2026-04-20
+- 2026-04-23
 
 ## Copy-paste summary
 ```text
-This app manages daily tiffin orders, computes optimized bundle costs using thali bundles, splits optimized totals user-wise per day, supports monthly invoice views, tracks HouseKeeper attendance/cost, and now uses username/password auth with protected API routes. Use docs/features for UI behavior, docs/algorithms for optimization/split logic, docs/api for endpoints, and docs/config for env setup.
+This app manages daily tiffin orders, computes optimized bundle costs using thali bundles, splits optimized totals user-wise per day, supports monthly invoice and home charts, tracks HouseKeeper attendance/cost, provides global action toasts, uses username/password auth with protected API routes, and can send a daily Handlebars-based summary email via cron. Use docs/features for UI behavior, docs/algorithms for optimization/split logic, docs/api for endpoints, and docs/config for env setup.
 ```
 
 ## Production migration notes (auth rollout)

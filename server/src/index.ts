@@ -7,6 +7,7 @@ import { authRouter } from "./routes/auth.js";
 import { ordersRouter } from "./routes/orders.js";
 import { housekeeperRouter } from "./routes/housekeeper.js";
 import { lightBillRouter } from "./routes/lightBill.js";
+import { startDailyReportJob } from "./jobs/dailyReportJob.js";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const PORT = Number(process.env.PORT) || 5000;
@@ -54,6 +55,7 @@ mongoose
     app.listen(PORT, () => {
       console.log(`API listening on ${process.env.NODE_ENV === "production" ?  `Production`  : `http://localhost:${PORT}`}`);
       console.log("Connected to MongoDB");
+      startDailyReportJob();
     });
   })
   .catch((err: unknown) => {

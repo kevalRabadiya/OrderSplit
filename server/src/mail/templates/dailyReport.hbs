@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Order Report</title>
+    <style>
+      @media only screen and (max-width: 640px) {
+        .email-wrap {
+          padding: 10px !important;
+        }
+        .email-card {
+          padding: 12px !important;
+          border-radius: 8px !important;
+        }
+        .email-title {
+          font-size: 19px !important;
+        }
+        .email-subtitle {
+          font-size: 12px !important;
+        }
+        .history-table thead {
+          display: none !important;
+        }
+        .history-table,
+        .history-table tbody,
+        .history-table tr,
+        .history-table td {
+          display: block !important;
+          width: 100% !important;
+        }
+        .history-table tr {
+          border: 1px solid #ddd !important;
+          border-radius: 8px !important;
+          margin-bottom: 10px !important;
+          overflow: hidden !important;
+        }
+        .history-table td {
+          border: none !important;
+          border-bottom: 1px solid #eee !important;
+          padding: 7px 8px !important;
+          font-size: 12px !important;
+          text-align: left !important;
+          word-break: break-word !important;
+        }
+        .history-table td:last-child {
+          border-bottom: none !important;
+        }
+        .history-table td::before {
+          content: attr(data-label) ": ";
+          font-weight: 700;
+          color: #444;
+        }
+      }
+    </style>
+  </head>
+  <body style="margin:0;padding:0;background:#f6f6f6;font-family:Arial,Helvetica,sans-serif;color:#1f1f1f;">
+    <div class="email-wrap" style="max-width:880px;margin:0 auto;padding:18px;">
+      <div class="email-card" style="background:#ffffff;border:1px solid #e6e6e6;border-radius:10px;padding:18px;">
+        <h1 class="email-title" style="margin:0 0 8px;font-size:22px;line-height:1.35;">Daily Order Report</h1>
+        <p class="email-subtitle" style="margin:0 0 4px;font-size:14px;"><strong>Date:</strong> {{dateKey}}</p>
+        <p class="email-subtitle" style="margin:0 0 16px;font-size:13px;color:#666;"><strong>Generated (IST):</strong> {{generatedAtIst}}</p>
+
+        <h2 style="margin:0 0 10px;font-size:18px;">Today's History</h2>
+        <table class="history-table" role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-bottom:18px;">
+          <thead>
+            <tr>
+              <th align="left" style="border:1px solid #ddd;padding:8px;background:#fafafa;font-size:12px;">Time (IST)</th>
+              <th align="left" style="border:1px solid #ddd;padding:8px;background:#fafafa;font-size:12px;">User</th>
+              <th align="left" style="border:1px solid #ddd;padding:8px;background:#fafafa;font-size:12px;">Thali</th>
+              <th align="left" style="border:1px solid #ddd;padding:8px;background:#fafafa;font-size:12px;">Extras</th>
+              <th align="left" style="border:1px solid #ddd;padding:8px;background:#fafafa;font-size:12px;">Description</th>
+              <th align="right" style="border:1px solid #ddd;padding:8px;background:#fafafa;font-size:12px;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each historyRows}}
+              <tr>
+                <td data-label="Time (IST)" style="border:1px solid #ddd;padding:8px;font-size:12px;vertical-align:top;">{{createdAtIst}}</td>
+                <td data-label="User" style="border:1px solid #ddd;padding:8px;font-size:12px;vertical-align:top;">
+                  <strong>{{userName}}</strong><br />
+                  <span style="color:#666;">{{userPhone}}</span>
+                </td>
+                <td data-label="Thali" style="border:1px solid #ddd;padding:8px;font-size:12px;vertical-align:top;">{{thaliLine}}</td>
+                <td data-label="Extras" style="border:1px solid #ddd;padding:8px;font-size:12px;vertical-align:top;">{{extrasLine}}</td>
+                <td data-label="Description" style="border:1px solid #ddd;padding:8px;font-size:12px;vertical-align:top;">{{description}}</td>
+                <td data-label="Total" align="right" style="border:1px solid #ddd;padding:8px;font-size:12px;vertical-align:top;"><strong>Rs.{{totalAmount}}</strong></td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+
+        <h2 style="margin:0 0 10px;font-size:18px;">Summary for this range</h2>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-bottom:18px;">
+          <tbody>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;"><strong>Orders</strong></td>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;">{{summary.orderCount}}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;"><strong>Total amount</strong></td>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;">Rs.{{summary.totalAmount}}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;"><strong>Thalis</strong></td>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;">{{summary.thaliCountsLine}}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;"><strong>Roti</strong></td>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;">{{summary.rotiTotal}}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;"><strong>Sabji</strong></td>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;">{{summary.sabjiTotal}}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;"><strong>Dal-rice</strong></td>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;">{{summary.dalRiceTotal}}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;"><strong>Rice</strong></td>
+              <td style="border:1px solid #ddd;padding:8px;font-size:13px;">{{summary.riceTotal}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 style="margin:0 0 10px;font-size:18px;">Lowest-cost way to cover what was ordered</h2>
+        {{#if optimization.hasDemand}}
+          <p style="margin:0 0 8px;font-size:13px;">{{optimization.demandLine}}</p>
+          <p style="margin:0 0 8px;font-size:13px;"><strong>Optimized thalis:</strong> {{optimization.optimizedThaliLine}}</p>
+          <p style="margin:0 0 8px;font-size:13px;"><strong>Leftover extras/rice:</strong> {{optimization.leftoverLine}}</p>
+          <p style="margin:0 0 4px;font-size:13px;"><strong>Current total:</strong> Rs.{{optimization.currentPaidCost}}</p>
+          <p style="margin:0 0 4px;font-size:13px;"><strong>Optimized total:</strong> Rs.{{optimization.totalOptimized}}</p>
+          <p style="margin:0;font-size:13px;"><strong>Savings:</strong> Rs.{{optimization.savings}}</p>
+        {{else}}
+          <p style="margin:0;font-size:13px;">No demand today.</p>
+        {{/if}}
+      </div>
+    </div>
+  </body>
+</html>

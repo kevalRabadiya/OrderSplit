@@ -9,6 +9,16 @@ Internal tool for daily tiffin order entry, tracking, and reporting. Stack is **
 - Daily order create/update/delete (soft delete), preview pricing, and history/invoice reporting.
 - Housekeeper and light-bill utility modules.
 - Theme toggle and auth-aware navigation.
+- Global toast notifications for key actions (order save/update/delete, light bill save, attendance updates, auth/user actions).
+- Invoice improvements:
+  - User filter does not affect split basis (split always uses all users who ordered that day).
+  - Date & time shown in IST.
+  - Description modal interaction aligned with history page.
+- Home page month picker drives year-aware charts (single month selector controls yearly chart year).
+- Daily cron-based email report (2:30 PM IST by default, env configurable), with:
+  - today's history rows,
+  - summary for today's range,
+  - lowest-cost optimization section rendered via Handlebars template.
 
 ## Auth model
 
@@ -93,6 +103,14 @@ When auth is added to an existing production DB, existing business data (`orders
 - `JWT_SECRET` (required)
 - `PORT` (optional, default `5000`)
 - `AUTH_TEMP_PASSWORD` (optional, used by migration script; min 4 chars)
+- `CORS_ORIGINS` (optional comma-separated allowlist)
+- Pricing overrides (optional): `THALI_1_PRICE` ... `THALI_5_PRICE`, `ROTI_PRICE`, `SABJI_UNIT_PRICE`, `DAL_RICE_UNIT_PRICE`, `RICE_PRICE`
+- SMTP/mail for daily report:
+  - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`
+  - `MAIL_FROM`, `MAIL_TO`
+- Daily report schedule:
+  - `DAILY_REPORT_CRON` (default `30 14 * * *`)
+  - `DAILY_REPORT_TIMEZONE` (default `Asia/Kolkata`)
 
 ### Client (`client/.env`)
 
