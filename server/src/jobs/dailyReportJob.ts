@@ -28,6 +28,10 @@ export async function runDailyReportJobNow(dateKey = getTodayDateKeyIST()): Prom
 }
 
 export function startDailyReportJob() {
+  if (process.env.NODE_ENV === "development") {
+    console.log("[daily-report] Scheduler disabled in development mode.");
+    return null;
+  }
   const scheduleExpr = process.env.DAILY_REPORT_CRON?.trim() || DEFAULT_CRON;
   const timezone = process.env.DAILY_REPORT_TIMEZONE?.trim() || DEFAULT_TZ;
   if (!cron.validate(scheduleExpr)) {
