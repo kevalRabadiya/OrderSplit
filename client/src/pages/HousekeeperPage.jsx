@@ -120,8 +120,8 @@ export default function HousekeeperPage() {
   }
 
   return (
-    <div className="page page--wide housekeeper-page">
-      <div className="page-head housekeeper-page-head glass-hero">
+    <div className="page page--wide housekeeper-page premium-shell premium-page">
+      <div className="page-head housekeeper-page-head glass-hero premium-hero motion-fade-up">
         <div>
           <p className="eyebrow">Attendance</p>
           <h1>HouseKeeper</h1>
@@ -131,7 +131,7 @@ export default function HousekeeperPage() {
         </div>
       </div>
 
-      <div className="card-elevated housekeeper-toolbar glass-surface">
+      <div className="card-elevated housekeeper-toolbar glass-surface glass-panel-3d depth-card neon-edge motion-fade-up motion-delay-1">
         <div className="housekeeper-month-nav">
           <button
             type="button"
@@ -162,11 +162,11 @@ export default function HousekeeperPage() {
       ) : null}
 
       <div className="housekeeper-stat-grid">
-        <div className="card-elevated housekeeper-stat-card glass-surface">
+        <div className="card-elevated housekeeper-stat-card glass-surface glass-panel-3d depth-card neon-edge motion-lift motion-fade-up motion-delay-2">
           <p className="home-stat-label muted mb-0">Present days</p>
           <p className="home-stat-value">{attendedDays}</p>
         </div>
-        <div className="card-elevated housekeeper-stat-card housekeeper-stat-card--accent glass-surface">
+        <div className="card-elevated housekeeper-stat-card housekeeper-stat-card--accent glass-surface glass-panel-3d depth-card neon-edge motion-lift motion-fade-up motion-delay-2">
           <p className="home-stat-label mb-0">Amount</p>
           <p className="home-stat-sublabel muted small mb-0">
             ₹{RATE_PER_DAY} per day
@@ -175,7 +175,7 @@ export default function HousekeeperPage() {
         </div>
       </div>
 
-      <section className="card-elevated housekeeper-calendar-wrap glass-surface">
+      <section className="card-elevated housekeeper-calendar-wrap glass-surface glass-panel-3d depth-card premium-chart-card motion-fade-up motion-delay-3">
         <div className="housekeeper-calendar-weekdays">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((w) => (
             <div key={w}>{w}</div>

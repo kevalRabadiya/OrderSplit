@@ -27,7 +27,7 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="page">
+      <div className="page premium-shell premium-page">
         <div className="loading-block">
           <Loader label="Loading users…" />
         </div>
@@ -37,7 +37,7 @@ export default function UsersPage() {
 
   if (error) {
     return (
-      <div className="page">
+      <div className="page premium-shell premium-page">
         <div className="panel panel--error">
           <p className="error mb-0">{error}</p>
         </div>
@@ -46,8 +46,8 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="page">
-      <div className="page-head">
+    <div className="page premium-shell premium-page">
+      <div className="page-head glass-hero premium-hero motion-fade-up">
         <div>
           <p className="eyebrow">Directory</p>
           <h1>Users</h1>
@@ -67,9 +67,9 @@ export default function UsersPage() {
           </p>
         </div>
       ) : (
-        <ul className="user-list">
+        <ul className="user-list motion-fade-up motion-delay-2">
           {users.map((u) => (
-            <li key={u._id} className="user-card">
+            <li key={u._id} className="user-card glass-panel-3d depth-card neon-edge motion-lift">
               <div className="user-meta">
                 <strong>{u.name}</strong>
                 <span className="muted">{u.phone}</span>

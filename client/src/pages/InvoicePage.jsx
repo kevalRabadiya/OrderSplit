@@ -218,8 +218,8 @@ export default function InvoicePage({ authUser }) {
   }, [grouped]);
 
   return (
-    <div className="page page--wide invoice-page">
-      <div className="page-head invoice-page-head glass-hero">
+    <div className="page page--wide invoice-page premium-shell premium-page">
+      <div className="page-head invoice-page-head glass-hero premium-hero motion-fade-up">
         <div>
           <p className="eyebrow">Billing</p>
           <h1>Invoice</h1>
@@ -233,7 +233,7 @@ export default function InvoicePage({ authUser }) {
         </Link>
       </div>
 
-      <div className="card-elevated invoice-toolbar glass-surface">
+      <div className="card-elevated invoice-toolbar glass-surface glass-panel-3d depth-card neon-edge motion-fade-up motion-delay-1">
         <label className="invoice-month-label">
           <span className="form-section-title invoice-month-title">Month</span>
           <input
@@ -276,7 +276,7 @@ export default function InvoicePage({ authUser }) {
           <Loader label="Loading invoice…" />
         </div>
       ) : rows.length === 0 ? (
-        <div className="card-elevated glass-surface">
+        <div className="card-elevated glass-surface glass-panel-3d depth-card neon-edge">
           <p className="muted mb-0">
             {filterUserId
               ? "No orders for this user in this month."
@@ -286,7 +286,7 @@ export default function InvoicePage({ authUser }) {
       ) : (
         <>
           {grouped.map((g) => (
-            <section key={g.userId} className="card-elevated invoice-user-block glass-surface">
+            <section key={g.userId} className="card-elevated invoice-user-block glass-surface glass-panel-3d depth-card premium-chart-card motion-lift motion-fade-up motion-delay-2">
               <div className="invoice-user-head">
                 <div>
                   <h2 className="invoice-user-name">
@@ -391,7 +391,7 @@ export default function InvoicePage({ authUser }) {
             </section>
           ))}
 
-          <div className="card-elevated invoice-grand-total glass-surface">
+          <div className="card-elevated invoice-grand-total glass-surface glass-panel-3d depth-card neon-edge motion-fade-up motion-delay-2">
             <span className="invoice-grand-label">
               {filterUserId ? "Total (filtered)" : "Grand total (month)"}
             </span>
@@ -410,7 +410,7 @@ export default function InvoicePage({ authUser }) {
           onClick={() => setDescriptionModal(null)}
         >
           <div
-            className="history-desc-modal card-elevated glass-surface"
+            className="history-desc-modal card-elevated glass-surface glass-panel-3d depth-card neon-edge"
             role="dialog"
             aria-modal="true"
             aria-label="Order description"

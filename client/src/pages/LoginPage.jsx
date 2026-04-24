@@ -86,9 +86,9 @@ export default function LoginPage({ isAuthenticated, onAuthChange }) {
   }
 
   return (
-    <div className="page auth-page">
+    <div className="page auth-page premium-shell premium-page">
       <div className="auth-shell">
-        <form className="form card-elevated auth-card auth-card-login" onSubmit={onSubmit}>
+        <form className="form card-elevated auth-card auth-card-login glass-panel-3d depth-card neon-edge motion-fade-up" onSubmit={onSubmit}>
           <div className="auth-card-head">
             <span className="auth-badge" aria-hidden>
               ✦

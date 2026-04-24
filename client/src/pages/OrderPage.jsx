@@ -343,8 +343,8 @@ export default function OrderPage({ authUser }) {
   const actionsDisabled = busy || loadingOrder;
 
   return (
-    <div className="page page--wide order-page">
-      <div className="page-head order-page-head glass-hero">
+    <div className="page page--wide order-page premium-shell premium-page">
+      <div className="page-head order-page-head glass-hero premium-hero motion-fade-up">
         <div>
           <p className="eyebrow">Kitchen</p>
           <h1>Build an order</h1>
@@ -358,10 +358,10 @@ export default function OrderPage({ authUser }) {
         </span> */}
       </div>
       <form
-        className="form order-form order-form--enhanced card-elevated glass-surface"
+        className="form order-form order-form--enhanced card-elevated glass-surface glass-panel-3d depth-card neon-edge motion-fade-up motion-delay-1"
         onSubmit={onCalculate}
       >
-        <section className="form-section order-section order-section--meta glass-surface">
+        <section className="form-section order-section order-section--meta glass-surface glass-panel-3d depth-card neon-edge motion-lift">
           <h2 className="form-section-title">When</h2>
           {/* <div className="order-current-user-card" role="status" aria-live="polite"> */}
             {/* <span className="small muted">Current user</span>
@@ -388,7 +388,7 @@ export default function OrderPage({ authUser }) {
           ) : null}
         </section>
 
-        <section className="form-section order-section order-section--thali glass-surface">
+        <section className="form-section order-section order-section--thali glass-surface glass-panel-3d depth-card neon-edge motion-lift">
           <div className="form-section-head">
             <h2 className="form-section-title">Thalis</h2>
             <button
@@ -444,7 +444,7 @@ export default function OrderPage({ authUser }) {
           )}
         </section>
 
-        <fieldset className="form-section extras order-section order-section--extras glass-surface">
+        <fieldset className="form-section extras order-section order-section--extras glass-surface glass-panel-3d depth-card neon-edge motion-lift">
           <legend className="form-section-title">Extra items</legend>
           <p className="hint muted mb-0">
             Each filled sabji name adds ₹40. One dal-rice choice adds ₹40.
@@ -508,7 +508,7 @@ export default function OrderPage({ authUser }) {
           </div>
         </fieldset>
 
-        <section className="form-section order-section order-section--note glass-surface">
+        <section className="form-section order-section order-section--note glass-surface glass-panel-3d depth-card neon-edge motion-lift">
           <h2 className="form-section-title">Description</h2>
           <label>
             Order note (optional)
@@ -526,7 +526,7 @@ export default function OrderPage({ authUser }) {
           </label>
         </section>
 
-        <div className="total-block order-total-block glass-surface" aria-live="polite">
+        <div className="total-block order-total-block glass-surface glass-panel-3d depth-card neon-edge motion-fade-up motion-delay-2" aria-live="polite">
           {previewTotal != null ? (
             <>
               <span className="total-label">Total</span>
