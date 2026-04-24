@@ -49,8 +49,8 @@ export default function AddUserPage() {
   }
 
   return (
-    <div className="page">
-      <div className="page-head">
+    <div className="page premium-shell premium-page">
+      <div className="page-head glass-hero premium-hero motion-fade-up">
         <div>
           <p className="eyebrow">Onboarding</p>
           <h1>New user</h1>
@@ -62,7 +62,7 @@ export default function AddUserPage() {
           Back
         </Link>
       </div>
-      <form className="form card-elevated" onSubmit={onSubmit}>
+      <form className="form card-elevated glass-panel-3d depth-card neon-edge motion-fade-up motion-delay-1" onSubmit={onSubmit}>
         <label>
           Name
           <input

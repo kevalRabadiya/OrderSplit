@@ -2647,6 +2647,43 @@
   letter-spacing: -0.01em;
 }
 
+.premium-page .glass-hero {
+  border-color: color-mix(in srgb, var(--neon-primary) 22%, var(--glass-border));
+  box-shadow: var(--elevation-3d-md), var(--glow-soft);
+}
+
+.premium-page .card-elevated,
+.premium-page .panel {
+  transition:
+    transform 260ms var(--motion-ease),
+    box-shadow 260ms var(--motion-ease),
+    border-color 220ms var(--motion-ease);
+}
+
+.premium-page .card-elevated:hover,
+.premium-page .panel:hover {
+  border-color: color-mix(in srgb, var(--neon-primary) 26%, var(--border));
+}
+
+.premium-page .btn.primary {
+  box-shadow:
+    0 6px 20px color-mix(in srgb, var(--neon-primary) 28%, transparent),
+    0 1px 0 color-mix(in srgb, #ffffff 24%, transparent);
+}
+
+.premium-page .btn.primary:hover {
+  transform: translateY(-1px);
+}
+
+.premium-page .form input:focus-visible,
+.premium-page .form select:focus-visible,
+.premium-page .form textarea:focus-visible {
+  border-color: color-mix(in srgb, var(--neon-primary) 48%, var(--border));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--neon-primary) 20%, transparent),
+    0 0 24px color-mix(in srgb, var(--neon-primary) 20%, transparent);
+}
+
 .home-section-head {
   display: flex;
   flex-wrap: wrap;
@@ -2926,6 +2963,12 @@
   .motion-lift:hover {
     transform: none;
     box-shadow: var(--elevation-3d-sm), var(--glow-soft);
+  }
+
+  .premium-page .card-elevated,
+  .premium-page .panel,
+  .premium-page .btn.primary {
+    box-shadow: var(--elevation-3d-sm);
   }
 
   .home-month-toolbar::after {

@@ -141,8 +141,8 @@ export default function HistoryPage() {
   }, [descriptionModal]);
 
   return (
-    <div className="page page--wide history-page">
-      <div className="page-head history-page-head glass-hero">
+    <div className="page page--wide history-page premium-shell premium-page">
+      <div className="page-head history-page-head glass-hero premium-hero motion-fade-up">
         <div>
           <p className="eyebrow">Orders</p>
           <h1>History</h1>
@@ -157,7 +157,7 @@ export default function HistoryPage() {
         </Link>
       </div>
 
-      <div className="card-elevated history-filters glass-surface">
+      <div className="card-elevated history-filters glass-surface glass-panel-3d depth-card neon-edge motion-fade-up motion-delay-1">
         <div className="history-filters-head">
           <h2 className="form-section-title history-filters-title">Filters</h2>
           <button
@@ -218,7 +218,7 @@ export default function HistoryPage() {
           <Loader label="Loading orders…" />
         </div>
       ) : (
-        <div className="card-elevated history-table-wrap glass-surface">
+        <div className="card-elevated history-table-wrap glass-surface glass-panel-3d depth-card premium-chart-card motion-fade-up motion-delay-2">
           {rows.length === 0 ? (
             <p className="muted mb-0">No orders in this range.</p>
           ) : (
@@ -304,7 +304,7 @@ export default function HistoryPage() {
       )}
 
       {!loading && rows.length > 0 ? (
-        <div className="card-elevated history-summary glass-surface">
+        <div className="card-elevated history-summary glass-surface glass-panel-3d depth-card neon-edge motion-fade-up motion-delay-2">
           <h2 className="form-section-title history-summary-title">
             Summary for this range
           </h2>
@@ -515,7 +515,7 @@ export default function HistoryPage() {
           onClick={() => setDescriptionModal(null)}
         >
           <div
-            className="history-desc-modal card-elevated glass-surface"
+            className="history-desc-modal card-elevated glass-surface glass-panel-3d depth-card neon-edge"
             role="dialog"
             aria-modal="true"
             aria-label="Order description"
