@@ -2315,6 +2315,123 @@
   margin-bottom: 1.15rem;
 }
 
+.premium-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.premium-shell::before,
+.premium-shell::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.premium-shell::before {
+  inset: -8% -6% auto;
+  height: 22rem;
+  background:
+    radial-gradient(
+      60% 50% at 18% 10%,
+      color-mix(in srgb, var(--neon-primary) 24%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      44% 42% at 80% 12%,
+      color-mix(in srgb, var(--neon-secondary) 20%, transparent),
+      transparent 75%
+    );
+  filter: blur(20px);
+}
+
+.premium-shell::after {
+  inset: auto -5% -8%;
+  height: 18rem;
+  background: radial-gradient(
+    62% 60% at 52% 70%,
+    color-mix(in srgb, var(--neon-primary) 16%, transparent),
+    transparent 70%
+  );
+  filter: blur(18px);
+}
+
+.glass-panel-3d {
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--surface-1) 88%, transparent),
+      color-mix(in srgb, var(--surface-2) 82%, transparent) 55%,
+      color-mix(in srgb, var(--surface-3) 80%, transparent)
+    );
+  border: 1px solid color-mix(in srgb, var(--neon-primary) 22%, var(--glass-border));
+  box-shadow: var(--elevation-3d-md);
+  backdrop-filter: blur(14px) saturate(120%);
+}
+
+.depth-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition:
+    transform 280ms var(--motion-ease),
+    box-shadow 280ms var(--motion-ease),
+    border-color 220ms var(--motion-ease),
+    background 280ms var(--motion-ease);
+}
+
+.depth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      140deg,
+      color-mix(in srgb, #ffffff 16%, transparent),
+      transparent 42%,
+      color-mix(in srgb, var(--neon-secondary) 10%, transparent)
+    );
+  opacity: 0.55;
+}
+
+.neon-edge {
+  box-shadow: var(--elevation-3d-sm), var(--glow-soft);
+}
+
+.motion-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--elevation-3d-lg), var(--glow-soft);
+  border-color: color-mix(in srgb, var(--neon-primary) 30%, var(--glass-border));
+}
+
+.motion-fade-up {
+  animation: fade-up 620ms var(--motion-ease) both;
+}
+
+.motion-delay-1 {
+  animation-delay: 80ms;
+}
+
+.motion-delay-2 {
+  animation-delay: 140ms;
+}
+
+.motion-delay-3 {
+  animation-delay: 200ms;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .home-dashboard-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2324,6 +2441,26 @@
 
 .home-month-toolbar {
   margin-bottom: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-month-toolbar::after {
+  content: "";
+  position: absolute;
+  width: 40%;
+  height: 220%;
+  top: -60%;
+  left: -18%;
+  background: linear-gradient(
+    95deg,
+    transparent,
+    color-mix(in srgb, var(--neon-primary) 18%, transparent),
+    transparent
+  );
+  transform: rotate(17deg);
+  pointer-events: none;
+  opacity: 0.34;
 }
 
 .home-stat-grid {
@@ -2434,6 +2571,14 @@
 .home-chart-inner {
   min-height: 260px;
   border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--neon-primary) 14%, var(--border));
+  background: linear-gradient(
+    170deg,
+    color-mix(in srgb, var(--surface-1) 76%, transparent),
+    color-mix(in srgb, var(--surface-2) 70%, transparent)
+  );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 10%, transparent);
+  padding: 0.35rem 0.45rem;
 }
 
 .home-chart-candle-legend {
@@ -2487,6 +2632,21 @@
   backdrop-filter: blur(14px) saturate(120%);
 }
 
+.premium-hero {
+  border-color: color-mix(in srgb, var(--neon-primary) 24%, var(--glass-border));
+  box-shadow: var(--elevation-3d-md), var(--glow-soft);
+}
+
+.premium-hero h1 {
+  text-shadow:
+    0 1px 0 color-mix(in srgb, #ffffff 14%, transparent),
+    0 0 32px color-mix(in srgb, var(--neon-primary) 18%, transparent);
+}
+
+.premium-chart-card .home-chart-title {
+  letter-spacing: -0.01em;
+}
+
 .home-section-head {
   display: flex;
   flex-wrap: wrap;
@@ -2524,6 +2684,15 @@
 
   .glass-surface:hover {
     transform: none;
+  }
+
+  .motion-fade-up {
+    animation: none !important;
+  }
+
+  .motion-lift:hover {
+    transform: none !important;
+    box-shadow: var(--elevation-3d-sm), var(--glow-soft);
   }
 }
 
@@ -2740,6 +2909,33 @@
 
 /* ========== Responsive: phones & small tablets ========== */
 @media (max-width: 640px) {
+  .premium-shell::before,
+  .premium-shell::after {
+    filter: blur(12px);
+    opacity: 0.75;
+  }
+
+  .glass-panel-3d {
+    backdrop-filter: blur(8px) saturate(110%);
+  }
+
+  .depth-card::before {
+    opacity: 0.4;
+  }
+
+  .motion-lift:hover {
+    transform: none;
+    box-shadow: var(--elevation-3d-sm), var(--glow-soft);
+  }
+
+  .home-month-toolbar::after {
+    opacity: 0.24;
+  }
+
+  .home-chart-inner {
+    padding: 0.25rem 0.3rem;
+  }
+
   .app {
     padding-left: max(0.75rem, env(safe-area-inset-left));
     padding-right: max(0.75rem, env(safe-area-inset-right));
