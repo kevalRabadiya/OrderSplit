@@ -231,6 +231,18 @@ export function saveLightBillPeriod({ fromMonthKey, toMonthKey, amount }) {
   });
 }
 
+export function getDeposit() {
+  return request("/api/deposit");
+}
+
+export function saveDeposit({ totalAmount, allocations }) {
+  return request("/api/deposit", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ totalAmount, allocations }),
+  });
+}
+
 export function getServerHealth() {
   return request("/health");
 }

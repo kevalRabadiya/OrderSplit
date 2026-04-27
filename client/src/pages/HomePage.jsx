@@ -12,6 +12,7 @@ import {
 import DailyExpenseCandlestick from "../components/DailyExpenseCandlestick.jsx";
 import Loader from "../components/Loader.jsx";
 import {
+  getDeposit,
   getHousekeeperAttendance,
   getLightBillsForYear,
   getOrdersHistory,
@@ -228,6 +229,9 @@ export default function HomePage() {
   const [recentError, setRecentError] = useState(null);
   const [lightLoading, setLightLoading] = useState(true);
   const [lightError, setLightError] = useState(null);
+  const [depositTotalAmount, setDepositTotalAmount] = useState(0);
+  const [depositLoading, setDepositLoading] = useState(true);
+  const [depositError, setDepositError] = useState(null);
 
   const range = useMemo(() => monthToDateRange(chartMonth), [chartMonth]);
   const selectedYear = useMemo(() => {
@@ -546,6 +550,32 @@ export default function HomePage() {
     };
   }, [selectedYear]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setDepositLoading(true);
+    setDepositError(null);
+    (async () => {
+      try {
+        const row = await getDeposit();
+        if (!cancelled) {
+          const amount = Number(row?.totalAmount);
+          setDepositTotalAmount(Number.isFinite(amount) ? amount : 0);
+          setDepositError(null);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setDepositTotalAmount(0);
+          setDepositError(e?.message || "Failed to load deposit");
+        }
+      } finally {
+        if (!cancelled) setDepositLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const monthLabelShort = `${chartMonth.slice(5, 7)}/${chartMonth.slice(0, 4)}`;
   const rangeDisplay = `${formatDateDDMMYYYY(range.from)} – ${formatDateDDMMYYYY(range.to)}`;
 
@@ -664,6 +694,26 @@ export default function HomePage() {
               <>₹{housekeeperAmount}</>
             )}
           </div>
+        </div>
+        <div className="card-elevated home-stat-card glass-surface glass-panel-3d depth-card neon-edge motion-lift motion-fade-up motion-delay-2">
+          <p className="home-stat-label muted mb-0">Deposit</p>
+          <p className="home-stat-sublabel muted small mb-0">Current pool</p>
+          <div className="home-stat-value">
+            {depositLoading ? (
+              <Loader variant="inline" label="Loading deposit…" />
+            ) : depositError ? (
+              <span className="small muted" role="alert">
+                {depositError}
+              </span>
+            ) : (
+              <>₹{depositTotalAmount}</>
+            )}
+          </div>
+          <p className="small muted mb-0">
+            <Link to="/deposit" className="home-section-link">
+              Manage →
+            </Link>
+          </p>
         </div>
       </div>
 

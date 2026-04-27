@@ -3497,3 +3497,128 @@
 .app-toast {
   font-family: var(--font-body, inherit);
 }
+
+.deposit-page-head {
+  align-items: center;
+}
+
+.deposit-form {
+  display: grid;
+  gap: 14px;
+}
+
+.deposit-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.deposit-summary-item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.deposit-split-wrap {
+  display: grid;
+  gap: 12px;
+}
+
+.deposit-split-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.deposit-cell-input {
+  width: 120px;
+}
+
+.deposit-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  letter-spacing: 0.01em;
+}
+
+.deposit-chip--paid {
+  background: color-mix(in srgb, #34d399 20%, transparent);
+  color: color-mix(in srgb, #059669 80%, var(--text));
+  border: 1px solid color-mix(in srgb, #34d399 42%, transparent);
+}
+
+.deposit-chip--pending {
+  background: color-mix(in srgb, #f97316 18%, transparent);
+  color: color-mix(in srgb, #c2410c 72%, var(--text));
+  border: 1px solid color-mix(in srgb, #f97316 40%, transparent);
+}
+
+.deposit-analytics-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1.1fr 1fr;
+}
+
+.deposit-pending-card,
+.deposit-pie-card {
+  display: grid;
+  gap: 12px;
+}
+
+.deposit-pending-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.deposit-pending-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  padding: 10px 12px;
+}
+
+.deposit-pending-user {
+  display: grid;
+  gap: 2px;
+}
+
+.deposit-pie-wrap {
+  min-height: 260px;
+}
+
+@media (max-width: 880px) {
+  .deposit-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .deposit-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deposit-split-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .deposit-cell-input {
+    width: 100%;
+    min-width: 120px;
+  }
+}
