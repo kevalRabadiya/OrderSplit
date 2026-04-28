@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import Loader from "../components/Loader.jsx";
 import { getDeposit, getUsers, saveDeposit } from "../api";
 import { toast } from "../lib/toast.js";
+import { formatDateTimeIST } from "../utils/dateFormat.js";
 
 const PIE_COLORS = [
   "#fb923c",
@@ -25,6 +26,11 @@ function round2(n) {
   return Math.round((Number(n) || 0) * 100) / 100;
 }
 
+function percentFromAmount(amount, total) {
+  if (!total || total <= 0) return 0;
+  return round2((round2(amount) / round2(total)) * 100);
+}
+
 export default function DepositPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +38,7 @@ export default function DepositPage() {
   const [error, setError] = useState(null);
   const [totalAmount, setTotalAmount] = useState("");
   const [allocByUser, setAllocByUser] = useState({});
+  const [depositHistory, setDepositHistory] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,12 +62,14 @@ export default function DepositPage() {
           next[uid] = round2(toNumberOrZero(row?.amount));
         }
         setAllocByUser(next);
+        setDepositHistory(Array.isArray(deposit?.history) ? deposit.history : []);
       } catch (e) {
         if (!cancelled) {
           setError(e.message || "Failed to load deposit data.");
           setUsers([]);
           setTotalAmount("0");
           setAllocByUser({});
+          setDepositHistory([]);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -110,6 +119,66 @@ export default function DepositPage() {
     [rows]
   );
 
+  const historyWithChanges = useMemo(() => {
+    const allUserIds = users.map((u) => String(u._id));
+    return depositHistory.map((entry, idx) => {
+      const previous = depositHistory[idx + 1] || null;
+      const currentTotal = round2(Number(entry?.totalAmount) || 0);
+      const previousTotal = round2(Number(previous?.totalAmount) || 0);
+
+      const currentMap = new Map(
+        (Array.isArray(entry?.allocations) ? entry.allocations : []).map((a) => [
+          String(a.userId),
+          {
+            userId: String(a.userId),
+            userName: a.userName || "User",
+            amount: round2(Number(a.amount) || 0),
+          },
+        ])
+      );
+      const previousMap = new Map(
+        (Array.isArray(previous?.allocations) ? previous.allocations : []).map((a) => [
+          String(a.userId),
+          {
+            userId: String(a.userId),
+            userName: a.userName || "User",
+            amount: round2(Number(a.amount) || 0),
+          },
+        ])
+      );
+
+      const changedRows = allUserIds
+        .map((uid) => {
+          const user = users.find((u) => String(u._id) === uid);
+          const curr = currentMap.get(uid);
+          const prev = previousMap.get(uid);
+          const currAmount = curr?.amount ?? 0;
+          const prevAmount = prev?.amount ?? 0;
+          const currPercent = percentFromAmount(currAmount, currentTotal);
+          const prevPercent = percentFromAmount(prevAmount, previousTotal);
+          const changed =
+            Math.abs(currAmount - prevAmount) > 0.0001 ||
+            Math.abs(currPercent - prevPercent) > 0.0001;
+          if (!changed) return null;
+          return {
+            userId: uid,
+            userName: curr?.userName || prev?.userName || user?.name || "User",
+            prevAmount,
+            currAmount,
+            prevPercent,
+            currPercent,
+          };
+        })
+        .filter(Boolean);
+
+      return {
+        ...entry,
+        changedRows,
+      };
+    });
+  }, [depositHistory, users]);
+  const recentHistory = useMemo(() => historyWithChanges.slice(0, 5), [historyWithChanges]);
+
   function handleAmountChange(userId, raw) {
     const cleaned = raw === "" ? "" : raw;
     const n = cleaned === "" ? 0 : Math.max(0, toNumberOrZero(cleaned));
@@ -156,6 +225,8 @@ export default function DepositPage() {
         totalAmount: round2(totalValue),
         allocations,
       });
+      const latest = await getDeposit();
+      setDepositHistory(Array.isArray(latest?.history) ? latest.history : []);
       toast.success("Deposit saved.");
     } catch (e2) {
       const msg = e2.message || "Could not save deposit.";
@@ -195,13 +266,12 @@ export default function DepositPage() {
             <label>
               Total amount (₹)
               <input
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
                 value={totalAmount}
                 onChange={(e) => handleTotalChange(e.target.value)}
                 placeholder="0"
                 inputMode="decimal"
+                className="deposit-advanced-input"
               />
             </label>
 
@@ -260,23 +330,20 @@ export default function DepositPage() {
                       <td className="small muted">{r.phone || "—"}</td>
                       <td>
                         <input
-                          className="deposit-cell-input"
-                          type="number"
-                          min="0"
-                          step="0.01"
+                          className="deposit-cell-input deposit-advanced-input"
+                          type="text"
                           value={Number.isFinite(r.amount) ? String(r.amount) : "0"}
                           onChange={(e) => handleAmountChange(r.userId, e.target.value)}
+                          inputMode="decimal"
                         />
                       </td>
                       <td>
                         <input
-                          className="deposit-cell-input"
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.01"
+                          className="deposit-cell-input deposit-advanced-input"
+                          type="text"
                           value={Number.isFinite(r.percent) ? String(r.percent) : "0"}
                           onChange={(e) => handlePercentChange(r.userId, e.target.value)}
+                          inputMode="decimal"
                         />
                       </td>
                       <td>
@@ -350,6 +417,73 @@ export default function DepositPage() {
               )}
             </section>
           </div>
+
+          <section className="card-elevated deposit-history-card glass-surface glass-panel-3d depth-card premium-chart-card motion-fade-up motion-delay-3">
+            <div className="deposit-history-head">
+              <h2 className="form-section-title mb-0">Deposit history</h2>
+              <span className="small muted">Snapshot on each save</span>
+            </div>
+            {recentHistory.length === 0 ? (
+              <p className="muted mb-0">No history yet. Save deposit to create first entry.</p>
+            ) : (
+              <div className="deposit-history-list">
+                {recentHistory.map((entry, idx) => (
+                  <article
+                    key={`${entry.changedAt || "time"}-${entry.changedByUserId || "user"}-${idx}`}
+                    className="deposit-history-item"
+                  >
+                    <div className="deposit-history-meta">
+                      <div>
+                        <p className="mb-0">
+                          <strong>{entry.changedByName || "User"}</strong>{" "}
+                          <span className="small muted">updated deposit</span>
+                        </p>
+                        <p className="small muted mb-0">
+                          {formatDateTimeIST(entry.changedAt)}
+                        </p>
+                      </div>
+                      <p className="mb-0">
+                        <span className="small muted">Total:</span>{" "}
+                        <strong>₹{Number(entry.totalAmount || 0).toFixed(2)}</strong>
+                      </p>
+                    </div>
+                    <div className="table-scroll">
+                      <table className="history-table deposit-history-table">
+                        <thead>
+                          <tr>
+                            <th>User changed</th>
+                            <th>Amount change (₹)</th>
+                            <th>Percentage change (%)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {entry.changedRows.length === 0 ? (
+                            <tr>
+                              <td colSpan={3} className="small muted">
+                                Initial snapshot (no previous entry for diff).
+                              </td>
+                            </tr>
+                          ) : (
+                            entry.changedRows.map((row) => (
+                              <tr key={row.userId}>
+                                <td>{row.userName}</td>
+                                <td>
+                                  {row.prevAmount.toFixed(2)} → {row.currAmount.toFixed(2)}
+                                </td>
+                                <td>
+                                  {row.prevPercent.toFixed(2)} → {row.currPercent.toFixed(2)}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
         </>
       )}
     </div>

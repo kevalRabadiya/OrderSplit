@@ -3538,6 +3538,27 @@
   width: 120px;
 }
 
+.deposit-advanced-input {
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line));
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--surface) 95%, transparent), var(--surface-muted));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 60%, transparent),
+    0 1px 2px color-mix(in srgb, #020617 6%, transparent);
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.deposit-advanced-input:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 6px 16px color-mix(in srgb, var(--accent) 16%, transparent);
+  transform: translateY(-1px);
+}
+
 .deposit-chip {
   display: inline-flex;
   align-items: center;
@@ -3601,6 +3622,44 @@
   min-height: 260px;
 }
 
+.deposit-history-card {
+  display: grid;
+  gap: 12px;
+}
+
+.deposit-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.deposit-history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.deposit-history-item {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-muted);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.deposit-history-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.deposit-history-table td,
+.deposit-history-table th {
+  white-space: nowrap;
+}
+
 @media (max-width: 880px) {
   .deposit-analytics-grid {
     grid-template-columns: 1fr;
@@ -3620,5 +3679,11 @@
   .deposit-cell-input {
     width: 100%;
     min-width: 120px;
+  }
+
+  .deposit-history-head,
+  .deposit-history-meta {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

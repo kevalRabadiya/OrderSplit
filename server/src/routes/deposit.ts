@@ -1,5 +1,6 @@
 import { Router } from "express";
 import mongoose from "mongoose";
+import { requireAuth, type AuthenticatedRequest } from "../auth.js";
 import { Deposit } from "../models/Deposit.js";
 import { User } from "../models/User.js";
 
@@ -12,6 +13,64 @@ type AllocationInput = {
   amount?: unknown;
 };
 
+type DepositLean = {
+  singletonKey: string;
+  totalAmount: number;
+  allocations?: Array<{ userId: mongoose.Types.ObjectId | string; amount: number }>;
+  history?: Array<{
+    changedAt: Date | string;
+    changedByUserId: mongoose.Types.ObjectId | string;
+    totalAmount: number;
+    allocations?: Array<{ userId: mongoose.Types.ObjectId | string; amount: number }>;
+  }>;
+};
+
+function uniqueStrings(values: Array<string | undefined | null>) {
+  return [...new Set(values.filter((v): v is string => Boolean(v)))];
+}
+
+async function shapeDepositResponse(row: DepositLean) {
+  const liveAllocationUserIds = (row.allocations || []).map((a) => String(a.userId));
+  const historyChangedByIds = (row.history || []).map((h) => String(h.changedByUserId));
+  const historyAllocationIds = (row.history || []).flatMap((h) =>
+    (h.allocations || []).map((a) => String(a.userId))
+  );
+  const allUserIds = uniqueStrings([
+    ...liveAllocationUserIds,
+    ...historyChangedByIds,
+    ...historyAllocationIds,
+  ]);
+  const users = await User.find({ _id: { $in: allUserIds } })
+    .select("_id name")
+    .lean();
+  const userNameById = new Map(users.map((u) => [String(u._id), u.name || "User"]));
+
+  return {
+    singletonKey: row.singletonKey,
+    totalAmount: Number(row.totalAmount) || 0,
+    allocations: (row.allocations || []).map((a) => ({
+      userId: String(a.userId),
+      amount: Number(a.amount) || 0,
+      userName: userNameById.get(String(a.userId)) || "User",
+    })),
+    history: [...(row.history || [])]
+      .sort((a, b) => +new Date(b.changedAt) - +new Date(a.changedAt))
+      .map((h) => ({
+        changedAt: h.changedAt,
+        changedByUserId: String(h.changedByUserId),
+        changedByName: userNameById.get(String(h.changedByUserId)) || "User",
+        totalAmount: Number(h.totalAmount) || 0,
+        allocations: (h.allocations || []).map((a) => ({
+          userId: String(a.userId),
+          amount: Number(a.amount) || 0,
+          userName: userNameById.get(String(a.userId)) || "User",
+        })),
+      })),
+  };
+}
+
+depositRouter.use(requireAuth);
+
 depositRouter.get("/", async (_req, res, next) => {
   try {
     const row = await Deposit.findOne({ singletonKey: SINGLETON_KEY }).lean();
@@ -20,15 +79,16 @@ depositRouter.get("/", async (_req, res, next) => {
         singletonKey: SINGLETON_KEY,
         totalAmount: 0,
         allocations: [],
+        history: [],
       });
     }
-    res.json(row);
+    res.json(await shapeDepositResponse(row as DepositLean));
   } catch (e) {
     next(e);
   }
 });
 
-depositRouter.put("/", async (req, res, next) => {
+depositRouter.put("/", async (req: AuthenticatedRequest, res, next) => {
   try {
     const body = req.body as {
       totalAmount?: unknown;
@@ -81,19 +141,33 @@ depositRouter.put("/", async (req, res, next) => {
         .json({ error: "Total allocated amount cannot exceed totalAmount" });
     }
 
+    const editorId = String(req.auth?.userId || "");
+    if (!mongoose.isValidObjectId(editorId)) {
+      return res.status(401).json({ error: "Invalid editor identity" });
+    }
+
+    const roundedTotal = Number(totalAmount.toFixed(2));
     const row = await Deposit.findOneAndUpdate(
       { singletonKey: SINGLETON_KEY },
       {
         $set: {
           singletonKey: SINGLETON_KEY,
-          totalAmount: Number(totalAmount.toFixed(2)),
+          totalAmount: roundedTotal,
           allocations: normalized,
+        },
+        $push: {
+          history: {
+            changedAt: new Date(),
+            changedByUserId: editorId,
+            totalAmount: roundedTotal,
+            allocations: normalized,
+          },
         },
       },
       { new: true, upsert: true, runValidators: true }
     ).lean();
 
-    res.json(row);
+    res.json(await shapeDepositResponse(row as DepositLean));
   } catch (e) {
     next(e);
   }
