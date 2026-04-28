@@ -17,6 +17,32 @@ const allocationSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const historyEntrySchema = new mongoose.Schema(
+  {
+    changedAt: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
+    changedByUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    allocations: {
+      type: [allocationSchema],
+      default: [],
+    },
+  },
+  { _id: false }
+);
+
 const depositSchema = new mongoose.Schema(
   {
     singletonKey: {
@@ -34,6 +60,10 @@ const depositSchema = new mongoose.Schema(
     },
     allocations: {
       type: [allocationSchema],
+      default: [],
+    },
+    history: {
+      type: [historyEntrySchema],
       default: [],
     },
   },
