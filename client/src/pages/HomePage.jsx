@@ -183,27 +183,80 @@ function buildDailyOptimizationChart(dayMap, from, to) {
 
 /** Matches `index.css` :root / [data-theme="dark"] chart-relevant tokens. */
 const CHART_THEME = {
-  light: {
-    accent: "#c2410c",
-    text: "#57534e",
-    textHeading: "#1c1917",
-    border: "#e7e2dc",
-    grid: "#e7e2dc",
+  orange: {
+    light: {
+      accent: "#c2410c",
+      text: "#57534e",
+      textHeading: "#1c1917",
+      border: "#e7e2dc",
+      grid: "#e7e2dc",
+    },
+    dark: {
+      accent: "#fb923c",
+      text: "#b8b3ad",
+      textHeading: "#fafaf9",
+      border: "#57534e",
+      grid: "#57534e",
+    },
   },
-  dark: {
-    accent: "#fb923c",
-    text: "#b8b3ad",
-    textHeading: "#fafaf9",
-    border: "#57534e",
-    grid: "#57534e",
+  teal: {
+    light: {
+      accent: "#0f766e",
+      text: "#57534e",
+      textHeading: "#1c1917",
+      border: "#e7e2dc",
+      grid: "#e7e2dc",
+    },
+    dark: {
+      accent: "#22d3ee",
+      text: "#b8b3ad",
+      textHeading: "#fafaf9",
+      border: "#57534e",
+      grid: "#57534e",
+    },
+  },
+  purple: {
+    light: {
+      accent: "#6d28d9",
+      text: "#57534e",
+      textHeading: "#1c1917",
+      border: "#e7e2dc",
+      grid: "#e7e2dc",
+    },
+    dark: {
+      accent: "#a78bfa",
+      text: "#b8b3ad",
+      textHeading: "#fafaf9",
+      border: "#57534e",
+      grid: "#57534e",
+    },
+  },
+  rose: {
+    light: {
+      accent: "#be185d",
+      text: "#57534e",
+      textHeading: "#1c1917",
+      border: "#e7e2dc",
+      grid: "#e7e2dc",
+    },
+    dark: {
+      accent: "#f472b6",
+      text: "#b8b3ad",
+      textHeading: "#fafaf9",
+      border: "#57534e",
+      grid: "#57534e",
+    },
   },
 };
 
 function useChartThemeColors() {
-  const { resolvedTheme } = useTheme();
+  const { resolvedTheme, palette } = useTheme();
   return useMemo(
-    () => CHART_THEME[resolvedTheme] ?? CHART_THEME.light,
-    [resolvedTheme]
+    () =>
+      CHART_THEME[palette]?.[resolvedTheme] ??
+      CHART_THEME.teal[resolvedTheme] ??
+      CHART_THEME.teal.light,
+    [palette, resolvedTheme]
   );
 }
 
