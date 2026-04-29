@@ -198,7 +198,7 @@ function UtilitiesMenu() {
 function ProfileMenu({ authUser, onLogout }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme, palette, setPalette, paletteOptions } = useTheme();
   const isDark = resolvedTheme === "dark";
   const username = authUser?.username || authUser?.name || "User";
   const initials = String(username)
@@ -273,6 +273,23 @@ function ProfileMenu({ authUser, onLogout }) {
               {isDark ? <MoonIcon /> : <SunIcon />}
             </span>
           </button>
+          <div className="profile-palette-block" role="group" aria-label="Accent palette">
+            <span className="small muted profile-palette-title">Accent color</span>
+            <div className="profile-palette-options">
+              {paletteOptions.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  className={`profile-palette-option ${palette === opt.id ? "active" : ""}`}
+                  onClick={() => setPalette(opt.id)}
+                  aria-pressed={palette === opt.id}
+                >
+                  <span className={`profile-palette-swatch profile-palette-swatch--${opt.id}`} />
+                  <span>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
           <button
             type="button"
             className="profile-menu-item profile-menu-item-danger"

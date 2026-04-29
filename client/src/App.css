@@ -1,4 +1,6 @@
 .app-glass {
+  --neon-primary: color-mix(in srgb, var(--accent) 82%, #22d3ee);
+  --neon-secondary: color-mix(in srgb, var(--accent) 52%, #3b82f6);
   --glass-bg: color-mix(in srgb, var(--surface) 72%, transparent);
   --glass-bg-strong: color-mix(in srgb, var(--surface) 84%, transparent);
   --glass-border: color-mix(in srgb, var(--accent) 14%, var(--border));
@@ -15,6 +17,8 @@
 }
 
 [data-theme="dark"] .app-glass {
+  --neon-primary: color-mix(in srgb, var(--accent) 86%, #67e8f9);
+  --neon-secondary: color-mix(in srgb, var(--accent) 56%, #60a5fa);
   --glass-bg: color-mix(in srgb, var(--surface) 78%, transparent);
   --glass-bg-strong: color-mix(in srgb, var(--surface) 86%, transparent);
   --glass-border: color-mix(in srgb, #ffffff 8%, var(--border));
@@ -50,7 +54,7 @@
     ),
     radial-gradient(
       32rem 20rem at 88% 10%,
-      color-mix(in srgb, #9c6bff 12%, transparent),
+      color-mix(in srgb, var(--neon-secondary) 14%, transparent),
       transparent 72%
     ),
     radial-gradient(
@@ -579,6 +583,78 @@
 .profile-menu-item-danger:hover {
   background: color-mix(in srgb, var(--error) 10%, var(--surface));
   box-shadow: none;
+}
+
+.profile-palette-block {
+  margin-top: 0.2rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.profile-palette-title {
+  padding: 0 0.15rem;
+}
+
+.profile-palette-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.profile-palette-option {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--text-h);
+  min-height: 2rem;
+  padding: 0.35rem 0.45rem;
+  font: inherit;
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    background var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.profile-palette-option:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent-muted) 44%, var(--surface));
+  transform: translateY(-1px);
+}
+
+.profile-palette-option.active {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+  background: color-mix(in srgb, var(--accent-muted) 62%, var(--surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.profile-palette-swatch {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #ffffff 60%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #020617 20%, transparent);
+  flex: 0 0 auto;
+}
+
+.profile-palette-swatch--orange {
+  background: linear-gradient(140deg, #c2410c, #fb923c);
+}
+
+.profile-palette-swatch--teal {
+  background: linear-gradient(140deg, #0f766e, #22d3ee);
+}
+
+.profile-palette-swatch--purple {
+  background: linear-gradient(140deg, #6d28d9, #a78bfa);
+}
+
+.profile-palette-swatch--rose {
+  background: linear-gradient(140deg, #be185d, #f472b6);
 }
 
 .nav-links a::after {
@@ -3577,9 +3653,9 @@
 }
 
 .deposit-chip--pending {
-  background: color-mix(in srgb, #f97316 18%, transparent);
-  color: color-mix(in srgb, #c2410c 72%, var(--text));
-  border: 1px solid color-mix(in srgb, #f97316 40%, transparent);
+  background: color-mix(in srgb, #38bdf8 20%, transparent);
+  color: color-mix(in srgb, #0369a1 72%, var(--text));
+  border: 1px solid color-mix(in srgb, #38bdf8 42%, transparent);
 }
 
 .deposit-analytics-grid {

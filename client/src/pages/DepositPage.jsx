@@ -7,12 +7,12 @@ import { toast } from "../lib/toast.js";
 import { formatDateTimeIST } from "../utils/dateFormat.js";
 
 const PIE_COLORS = [
-  "#fb923c",
+  "#14b8a6",
   "#38bdf8",
   "#a78bfa",
   "#34d399",
-  "#f472b6",
-  "#f59e0b",
+  "#3b82f6",
+  "#06b6d4",
   "#60a5fa",
   "#c084fc",
 ];
